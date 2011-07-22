@@ -14,7 +14,6 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
 #include <sys/queue.h>
 #include <curses.h>
 #include <unistd.h>
@@ -32,20 +31,43 @@
  */
 
 static void
+log_user(void) {
+	mvprintw(LINES - 1, 0, "login");
+	refresh();
+}
+
+static void
+register_user(void) {
+	mvprintw(LINES - 1, 0, "login");
+	refresh();
+}
+
+static void
+quit(void) {
+	clean_up("Good Bye");
+}
+
+/* GENERAL MENU */
+static void
 init_items_general(ITEM ***items) {
 	unsigned int i = 0;
 	const char *names[] = {"Login", "Register", "Quit"};
+	const callback funcs[] = {&log_user, &register_user, &quit};
 
-	for (i = 0; i < sizeof(names) / sizeof(names[0]); ++i)
+	for (i = 0; i < sizeof(names) / sizeof(names[0]); ++i) {
 		(*items)[i] = new_item(names[i], names[i]);
+		set_item_userptr((*items)[i], funcs[i]);
+	}
 }
 
 static void
 menu_opt_general(MENU **menu) {
 	set_menu_spacing(*menu, TABSIZE, 0, 0);
 	menu_opts_off(*menu, O_SHOWDESC);
+	menu_opts_off(*menu, O_NONCYCLIC);
 }
 
+/* GAMES MENU */
 static void
 init_items_game(ITEM ***items) {
 	struct games_list *glp;
@@ -107,6 +129,18 @@ menu_tpl(size_t length, void (*init_items)(ITEM ***), void (*menu_opt)(MENU **))
 		case KEY_END:
 			menu_driver(menu, REQ_LAST_ITEM);
 			break;
+		case '\n':
+		case '\r':
+		case KEY_ENTER:
+			{
+				ITEM *cur;
+				void (*p)(const char*);
+
+				cur = current_item(menu);
+				p = item_userptr(cur);
+				p(item_name(cur));
+				pos_menu_cursor(menu);
+			}	
 		default:
 			break;
 		}
