@@ -44,7 +44,6 @@ game_menu(void) {
 	}
 	items[gl_length] = (ITEM*)NULL;
 
-	mvprintw(1, 1, "%s %s", "game", "version");
 	menu = new_menu(items);
 	set_menu_spacing(menu, TABSIZE, 0, 0);
 	post_menu(menu);
@@ -69,7 +68,50 @@ game_menu(void) {
 
 	(void)unpost_menu(menu);
 	(void)free_menu(menu);
-	/*for (i = 0, i < gl_length, i += 1) {
+	for (i = 0; i < gl_length; i += 1)
 		(void)free_item(items[i]);
-	}*/
+}
+
+enum { general_menu_length = 3 };
+
+void
+general_menu(void) {
+	MENU *menu;
+	ITEM **items;
+	unsigned int i;
+	unsigned int c;
+	const char *names[] = {"Login", "Register", "Quit"};
+
+	items = calloc(general_menu_length, sizeof(*items));
+	for (i = 0; i < general_menu_length; ++i)
+		items[i] = new_item(names[i], names[i]);
+	items[general_menu_length] = (ITEM*)NULL;
+
+	menu = new_menu(items);
+	set_menu_spacing(menu, TABSIZE, 0, 0);
+	menu_opts_off(menu, O_SHOWDESC);
+	post_menu(menu);
+	refresh();
+	
+	while ((c = getch()) != KEY_F(1)) {
+		switch (c) {
+			case KEY_DOWN:
+			menu_driver(menu, REQ_DOWN_ITEM);
+			break;
+			case KEY_UP:
+			menu_driver(menu, REQ_UP_ITEM);
+			break;
+			case KEY_HOME:
+			menu_driver(menu, REQ_FIRST_ITEM);
+			break;
+			case KEY_END:
+			menu_driver(menu, REQ_LAST_ITEM);
+			break;
+		}
+	}
+
+	(void)unpost_menu(menu);
+	(void)free_menu(menu);
+	for (i = 0; i < general_menu_length; ++i)
+		(void)free_item(items[i]);
 }

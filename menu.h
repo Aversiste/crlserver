@@ -18,5 +18,6 @@
 #define MENU_H_
 
 void game_menu(void);
+void general_menu(void);
 
 #endif
