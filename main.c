@@ -22,12 +22,13 @@
 #include "init.h"
 
 struct games_list_head gl_head;
-unsigned int gl_length = 3;
+size_t	gl_length;
 
 int
 main(void) {
 	init();
-	general_menu();
+	/* menu(); */
+	game_menu();
 	end_window();
 	return (EX_OK);
 }

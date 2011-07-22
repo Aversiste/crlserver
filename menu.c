@@ -18,88 +18,58 @@
 #include <sys/queue.h>
 #include <curses.h>
 #include <unistd.h>
+#include <stdlib.h>
+#include <menu.h>
 #include "games.h"
 #include "crlserver.h"
 
-void
-print_game_menu(int highlight) {
-	struct games_list *glp;
-	int y = 2;
-	int i = 1;
+/*
+ * TODO: - mouse support
+ *       - put menu in a window
+ *       - multi columns menu
+ */
 
+void
+game_menu(void) {
+	MENU *menu;
+	ITEM **items;
+	unsigned int i;
+	unsigned int c;
+	struct games_list *glp;
+
+	items = calloc(gl_length + 1, sizeof(*items));
 	SLIST_FOREACH(glp, &gl_head, gls) {
-		if (highlight == i) {
-			attron(A_REVERSE);
-			mvaddstr(y, 2, glp->name);
-			attroff(A_REVERSE);
-		}
-		else
-			mvaddstr(y, 2, glp->name);
-		++y;
+		items[i] = new_item(glp->name, glp->version);
 		++i;
 	}
-}
+	items[gl_length] = (ITEM*)NULL;
 
-void
-print_menu(int highlight) {
-	char *choices[] = { 
-		"login",
-		"register",
-	};
-	int n_choices = sizeof(choices) / sizeof(char *);
-	int x, y, i;	
-
-	x = 2;
-	y = 2;
-	for(i = 0; i < n_choices; ++i)
-	{	if(highlight == i + 1) /* High light the present choice */
-		{	attron(A_REVERSE); 
-			mvprintw(y, x, "%s", choices[i]);
-			attroff(A_REVERSE);
-		}
-		else
-			mvprintw(y, x, "%s", choices[i]);
-		++y;
-	}
+	mvprintw(1, 1, "%s %s", "game", "version");
+	menu = new_menu(items);
+	set_menu_spacing(menu, TABSIZE, 0, 0);
+	post_menu(menu);
 	refresh();
-}
-
-void
-general_menu(void) {
-	int highlight = 1;
-	int choice = 0;
-	int c;
-
-	do {
-		print_menu(highlight);
-		c = getch();
+	
+	while ((c = getch()) != KEY_F(1)) {
 		switch (c) {
-		case KEY_UP:
-			if (highlight == 1)
-				highlight = gl_length;
-			else
-				--highlight;
+			case KEY_DOWN:
+			menu_driver(menu, REQ_DOWN_ITEM);
 			break;
-		case KEY_DOWN:
-			if (highlight == gl_length)
-				highlight = 1;
-			else 
-				++highlight;
+			case KEY_UP:
+			menu_driver(menu, REQ_UP_ITEM);
 			break;
-		case KEY_ENTER:
-		case '\r':
-		case '\n':
-			choice = highlight;
+			case KEY_HOME:
+			menu_driver(menu, REQ_FIRST_ITEM);
 			break;
-		default:
-			refresh();
+			case KEY_END:
+			menu_driver(menu, REQ_LAST_ITEM);
 			break;
 		}
-		if (choice != 0)
-			break;
-	} while (1);
+	}
 
-	(void)refresh();
-	(void)sleep(1);
-	release_games(&gl_head);
+	(void)unpost_menu(menu);
+	(void)free_menu(menu);
+	/*for (i = 0, i < gl_length, i += 1) {
+		(void)free_item(items[i]);
+	}*/
 }

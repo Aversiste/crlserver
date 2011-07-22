@@ -17,6 +17,6 @@
 #ifndef MENU_H_
 #define MENU_H_
 
-void general_menu(void);
+void game_menu(void);
 
 #endif
