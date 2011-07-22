@@ -20,7 +20,7 @@
 #include <sys/queue.h>
 
 SLIST_HEAD(games_list_head, games_list);
-int get_games(struct games_list_head *);
+int init_games(struct games_list_head *);
 void release_games(struct games_list_head *);
 
 struct games_list {

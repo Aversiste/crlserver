@@ -73,7 +73,7 @@ parse(FILE *fd) {
 }
 
 int
-get_games(struct games_list_head *gl_head) {
+init_games(struct games_list_head *gl_head) {
 	DIR* dir = opendir(GAMES_DIR);
 	struct dirent* dp;
 
@@ -99,6 +99,7 @@ get_games(struct games_list_head *gl_head) {
 			continue;
 		}
 
+		warnx("%s:", buf);
 		glp = parse(fd);
 		if (glp != NULL)
 			SLIST_INSERT_HEAD(gl_head, glp, gls);
