@@ -133,10 +133,9 @@ menu_tpl(size_t length, void (*init_items)(ITEM ***), void (*menu_opt)(MENU **))
 		case '\r':
 		case KEY_ENTER:
 			{
-				ITEM *cur;
+				ITEM *cur = current_item(menu);
 				void (*p)(const char*);
 
-				cur = current_item(menu);
 				p = item_userptr(cur);
 				p(item_name(cur));
 				pos_menu_cursor(menu);
