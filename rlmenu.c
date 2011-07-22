@@ -83,7 +83,7 @@ menu_tpl(size_t length, void (*init_items)(ITEM ***), void (*menu_opt)(MENU **))
 	win = newwin(LINES - 2, COLS, 1, 0);
 	keypad(win, TRUE);
 	set_menu_win(menu, win);
-	set_menu_sub(menu, derwin(win, LINES - 5, COLS - 1, 3, 1));
+	set_menu_sub(menu, derwin(win, LINES - 3, COLS - 1, 1, 1));
 	set_menu_mark(menu, " -> ");
 	box(win, 0, 0);
 
@@ -93,7 +93,7 @@ menu_tpl(size_t length, void (*init_items)(ITEM ***), void (*menu_opt)(MENU **))
 	(void)refresh();
 	(void)wrefresh(win);
 
-	while ((c = wgetch(win)) != KEY_F(1)) {
+	while ((c = wgetch(win)) != 'q') {
 		switch (c) {
 		case KEY_DOWN:
 			menu_driver(menu, REQ_DOWN_ITEM);
