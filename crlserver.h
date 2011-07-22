@@ -5,6 +5,6 @@
 #define DCOLS 80
 
 extern struct games_list_head gl_head;
-extern unsigned int gl_length;
+extern size_t gl_length;
 
 #endif
