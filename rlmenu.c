@@ -28,7 +28,6 @@
 
 /*
  * TODO: - mouse support
- *       - put menu in a window
  *       - multi columns menu
  */
 
@@ -67,6 +66,7 @@ void
 menu_tpl(size_t length, void (*init_items)(ITEM ***), void (*menu_opt)(MENU **)) {
 	MENU *menu;	
 	ITEM **items;
+	WINDOW *win;
 	unsigned int i;
 	unsigned int c;
 
@@ -80,12 +80,20 @@ menu_tpl(size_t length, void (*init_items)(ITEM ***), void (*menu_opt)(MENU **))
 	if (menu == (MENU*)NULL)
 		clean_up("menu error");
 	menu_opt(&menu);
+	win = newwin(LINES - 2, COLS, 1, 0);
+	keypad(win, TRUE);
+	set_menu_win(menu, win);
+	set_menu_sub(menu, derwin(win, LINES - 5, COLS - 1, 3, 1));
+	set_menu_mark(menu, " -> ");
+	box(win, 0, 0);
+
 	if (post_menu(menu) != E_OK)
 		clean_up("menu error");
 
 	(void)refresh();
+	(void)wrefresh(win);
 
-	while ((c = getch()) != KEY_F(1))
+	while ((c = wgetch(win)) != KEY_F(1)) {
 		switch (c) {
 		case KEY_DOWN:
 			menu_driver(menu, REQ_DOWN_ITEM);
@@ -102,14 +110,21 @@ menu_tpl(size_t length, void (*init_items)(ITEM ***), void (*menu_opt)(MENU **))
 		default:
 			break;
 		}
+		(void)wrefresh(win);
+	}
 
 	(void)unpost_menu(menu);
 	(void)free_menu(menu);
 	for (i = 0; i < length; ++i)
 		(void)free_item(items[i]);
+	(void)delwin(win);
 }
 
 void
 menu(void) {
+	attron(A_REVERSE);
+	mvaddstr(0, 1, "General Menu - crlserver");
+	attroff(A_REVERSE);
+	refresh();
 	menu_tpl(3, &init_items_general, &menu_opt_general);
 }
