@@ -65,8 +65,6 @@ parse(FILE *fd) {
 			gl->params = strdup(value);
 		else if (strncmp("env", key, 3) == 0 && value != NULL)
 			gl->env = strdup(value);
-		else
-			warnx("bad line: %s", b);
 		free(b);
 	}
 	return gl;
@@ -99,7 +97,6 @@ init_games(struct games_list_head *gl_head) {
 			continue;
 		}
 
-		warnx("%s:", buf);
 		glp = parse(fd);
 		if (glp != NULL)
 			SLIST_INSERT_HEAD(gl_head, glp, gls);

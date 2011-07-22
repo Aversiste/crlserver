@@ -38,7 +38,7 @@ log_user(void) {
 
 static void
 register_user(void) {
-	mvprintw(LINES - 1, 0, "login");
+	mvprintw(LINES - 1, 0, "register");
 	refresh();
 }
 
@@ -158,6 +158,7 @@ void
 menu(void) {
 	attron(A_REVERSE);
 	mvaddstr(0, 1, "General Menu - crlserver");
+	mvaddstr(LINES - 1, 1, "Not curently logged in");
 	attroff(A_REVERSE);
 	refresh();
 	menu_tpl(3, &init_items_general, &menu_opt_general);
