@@ -73,5 +73,5 @@ init_gl_length(void) {
 		++s;
 
 	gl_length = s;
-	warnx("gl_length: %ui", (unsigned int)gl_length);
+	warnx("gl_length: %u", (unsigned int)gl_length);
 }
