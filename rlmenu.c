@@ -20,8 +20,11 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <menu.h>
+#include <err.h>
+#include "rlmenu.h"
 #include "games.h"
 #include "crlserver.h"
+#include "init.h"
 
 /*
  * TODO: - mouse support
@@ -29,89 +32,84 @@
  *       - multi columns menu
  */
 
+static void
+init_items_general(ITEM ***items) {
+	unsigned int i = 0;
+	const char *names[] = {"Login", "Register", "Quit"};
+
+	for (i = 0; i < sizeof(names) / sizeof(names[0]); ++i)
+		(*items)[i] = new_item(names[i], names[i]);
+}
+
+static void
+menu_opt_general(MENU **menu) {
+	set_menu_spacing(*menu, TABSIZE, 0, 0);
+	menu_opts_off(*menu, O_SHOWDESC);
+}
+
+static void
+init_items_game(ITEM ***items) {
+	struct games_list *glp;
+	unsigned int i = 0;
+
+	SLIST_FOREACH(glp, &gl_head, gls) {
+		(*items)[i] = new_item(glp->name, glp->version);
+		++i;
+	}
+}
+
+static void
+menu_opt_game(MENU **menu) {
+	set_menu_spacing(*menu, TABSIZE, 0, 0);
+}
+
 void
-game_menu(void) {
-	MENU *menu;
+menu_tpl(size_t length, void (*init_items)(ITEM ***), void (*menu_opt)(MENU **)) {
+	MENU *menu;	
 	ITEM **items;
 	unsigned int i;
 	unsigned int c;
-	struct games_list *glp;
 
-	items = calloc(gl_length + 1, sizeof(*items));
-	SLIST_FOREACH(glp, &gl_head, gls) {
-		items[i] = new_item(glp->name, glp->version);
-		++i;
-	}
-	items[gl_length] = (ITEM*)NULL;
+	items = calloc(length, sizeof(*items));
+	if (items == (ITEM**)NULL)
+		clean_up("items error");
+	init_items(&items);
+	items[length] = (ITEM*)NULL;
 
 	menu = new_menu(items);
-	set_menu_spacing(menu, TABSIZE, 0, 0);
-	post_menu(menu);
-	refresh();
-	
-	while ((c = getch()) != KEY_F(1)) {
+	if (menu == (MENU*)NULL)
+		clean_up("menu error");
+	menu_opt(&menu);
+	if (post_menu(menu) != E_OK)
+		clean_up("menu error");
+
+	(void)refresh();
+
+	while ((c = getch()) != KEY_F(1))
 		switch (c) {
-			case KEY_DOWN:
+		case KEY_DOWN:
 			menu_driver(menu, REQ_DOWN_ITEM);
 			break;
-			case KEY_UP:
+		case KEY_UP:
 			menu_driver(menu, REQ_UP_ITEM);
 			break;
-			case KEY_HOME:
+		case KEY_HOME:
 			menu_driver(menu, REQ_FIRST_ITEM);
 			break;
-			case KEY_END:
+		case KEY_END:
 			menu_driver(menu, REQ_LAST_ITEM);
 			break;
+		default:
+			break;
 		}
-	}
 
 	(void)unpost_menu(menu);
 	(void)free_menu(menu);
-	for (i = 0; i < gl_length; i += 1)
+	for (i = 0; i < length; ++i)
 		(void)free_item(items[i]);
 }
 
-enum { general_menu_length = 3 };
-
 void
-general_menu(void) {
-	MENU *menu;
-	ITEM **items;
-	unsigned int i;
-	unsigned int c;
-	const char *names[] = {"Login", "Register", "Quit"};
-
-	items = calloc(general_menu_length, sizeof(*items));
-	for (i = 0; i < general_menu_length; ++i)
-		items[i] = new_item(names[i], names[i]);
-	items[general_menu_length] = (ITEM*)NULL;
-
-	menu = new_menu(items);
-	set_menu_spacing(menu, TABSIZE, 0, 0);
-	menu_opts_off(menu, O_SHOWDESC);
-	post_menu(menu);
-	refresh();
-	
-	while ((c = getch()) != KEY_F(1)) {
-		switch (c) {
-			case KEY_DOWN:
-			menu_driver(menu, REQ_DOWN_ITEM);
-			break;
-			case KEY_UP:
-			menu_driver(menu, REQ_UP_ITEM);
-			break;
-			case KEY_HOME:
-			menu_driver(menu, REQ_FIRST_ITEM);
-			break;
-			case KEY_END:
-			menu_driver(menu, REQ_LAST_ITEM);
-			break;
-		}
-	}
-
-	(void)unpost_menu(menu);
-	(void)free_menu(menu);
-	for (i = 0; i < general_menu_length; ++i)
-		(void)free_item(items[i]);
+menu(void) {
+	menu_tpl(3, &init_items_general, &menu_opt_general);
 }

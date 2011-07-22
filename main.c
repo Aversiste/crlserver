@@ -18,7 +18,7 @@
 #include <sysexits.h>
 
 #include "games.h"
-#include "menu.h"
+#include "rlmenu.h"
 #include "init.h"
 
 struct games_list_head gl_head;
@@ -27,8 +27,7 @@ size_t	gl_length;
 int
 main(void) {
 	init();
-	/* menu(); */
-	game_menu();
+	menu();
 	end_window();
 	return (EX_OK);
 }

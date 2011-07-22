@@ -14,10 +14,13 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <curses.h>
+#include <menu.h>
+
 #ifndef MENU_H_
 #define MENU_H_
 
-void game_menu(void);
-void general_menu(void);
+void menu_tpl(size_t, void (*)(ITEM ***), void (*)(MENU **));
+void menu(void);
 
 #endif
