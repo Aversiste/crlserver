@@ -42,3 +42,17 @@ sqlite_init(void) {
 	sqlite3_finalize(pStmt);
 	sqlite3_close(pDb);
 }
+
+/*
+char *qbuf;
+qbuf = sqlite3_mprintf("insert into users (username, email, password) values ('%q', '%q', '%q')", me->username, me->email, me->password);
+qbuf = sqlite3_mprintf("update users set username='%q', email='%q', password='%q' where id=%i", me->username, me->email, me->password, me->id);
+sqlite3_busy_timeout(db, 10000);
+ret = sqlite3_exec(db, qbuf, NULL, NULL, &errmsg);
+sqlite3_free(qbuf);
+if (ret != SQLITE_OK) {
+	sqlite3_close(db);
+	/* error message */
+}
+sqlite3_close(db);
+*/
