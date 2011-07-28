@@ -34,8 +34,8 @@
 #ifndef _UTIL_H_
 #define _UTIL_H_
 
-#include <sys/cdefs.h>
 #include <sys/types.h>
+#include <stdio.h>
 
 /*
  * fparseln() specific operation flags.

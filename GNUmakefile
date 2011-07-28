@@ -1,7 +1,8 @@
 #	crlserver Makefile
 
 PROG=		crlserver
-SRCS=		main.c games.c init.c rlmenu.c rlsqlite.c ./compat/fparseln.c
+SRCS =		main.c conf.c init.c general_menu.c rlmenu.c rlsqlite.c log.c
+SRCS +=		./compat/fparseln.c
 OSTYPE=		$(shell uname -s)
 
 CC?=		gcc
