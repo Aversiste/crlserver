@@ -28,14 +28,14 @@
 #include <sys/queue.h>
 #include <sysexits.h>
 #include <dirent.h>
-#include <err.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
-#include "pathnames.h"
 #include "conf.h"
+#include "pathnames.h"
+#include "log.h"
 
 #define FPARSELN(x)	fparseln((x), NULL, NULL, NULL, FPARSELN_UNESCALL)
 
@@ -83,7 +83,7 @@ load_folder(const char *path, struct list_head *lh) {
 	DIR* dir = opendir(path);
 
 	if (dir == NULL)
-		err(EX_IOERR, "Can't open %s\n", path);
+		clean_up(EX_IOERR, "Can't open %s\n", path);
 
 	while ((dp = readdir(dir)) != NULL) {
 		char buf[ (MAXNAMLEN + 1) * 2 ];
@@ -99,7 +99,7 @@ load_folder(const char *path, struct list_head *lh) {
 
 		fd = fopen(buf, "r");
 		if (fd == NULL) {
-			warn("%s", buf);
+			logmsg("%s", buf);
 			continue;
 		}
 

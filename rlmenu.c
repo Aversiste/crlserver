@@ -25,6 +25,7 @@
 #include "general_menu.h"
 #include "init.h"
 #include "rlmenu.h"
+#include "log.h"
 
 /*
  * TODO: - mouse support
@@ -86,13 +87,13 @@ menu_tpl(size_t length, void (*init_items)(ITEM ***), void (*menu_opt)(MENU **))
 
 	items = calloc(length, sizeof(*items));
 	if (items == (ITEM**)NULL)
-		clean_up("items error");
+		fclean_up("not enough memory");
 	init_items(&items);
 	items[length] = (ITEM*)NULL;
 
 	menu = new_menu(items);
 	if (menu == (MENU*)NULL)
-		clean_up("menu error");
+		fclean_up("not enough memory");
 	menu_opt(&menu);
 	win = newwin(LINES - 2, COLS, 1, 0);
 	(void)keypad(win, TRUE);
@@ -102,7 +103,7 @@ menu_tpl(size_t length, void (*init_items)(ITEM ***), void (*menu_opt)(MENU **))
 	(void)box(win, 0, 0);
 
 	if (post_menu(menu) != E_OK)
-		clean_up("menu error");
+		clean_up(1, "post_menu");
 
 	(void)refresh();
 	(void)wrefresh(win);
