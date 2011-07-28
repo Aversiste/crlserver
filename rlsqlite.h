@@ -17,9 +17,9 @@
 #ifndef CRLSERVER_SQLITE_H_
 #define CRLSERVER_SQLITE_H_
 
-#define RL_SQLITE_CREATE "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, names TEXT);"
 #define RL_SQLITE_DB "/tmp/crlserver.db"
 
 void sqlite_init(void);
+void sqlite_insert(const char *, const char *, const char *);
 
 #endif
