@@ -16,7 +16,7 @@
 
 #include <curses.h>
 
-#include "init.h"
+#include "log.h"
 
 void
 log_user(void) {
@@ -38,5 +38,5 @@ server_info(void) {
 
 void
 quit(void) {
-	clean_up("Good Bye");
+	fclean_up("Good Bye");
 }
