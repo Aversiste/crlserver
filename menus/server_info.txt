@@ -2,4 +2,5 @@
 # the C Roguelikes games Server
 #
 
-bla bla
+This is the XXX public NetHack, Hack, Rogue and Larn server.
+Contact email: crlserver@medu.se

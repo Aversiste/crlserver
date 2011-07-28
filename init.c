@@ -32,7 +32,7 @@ init(void) {
 	initscr();
 	if (has_colors() == TRUE)
 		start_color();
-	curs_set(0);
+	curs_set(0); /* Remove the cursor */
 
 	start_window();
 

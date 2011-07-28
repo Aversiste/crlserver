@@ -27,8 +27,8 @@
 #include <unistd.h>
 
 #include "crlserver.h"
-#include "general_menu.h"
 #include "init.h"
+#include "log.h"
 #include "menus.h"
 
 void
@@ -40,7 +40,7 @@ print_file(const char *path) {
 
 	(void)erase();
 	if (fd == NULL)
-		clean_up("Important file is missing");
+		clean_up(1, "Important file is missing");
 
 	while ((buf = fparseln(fd, NULL, NULL,
 	  sep, FPARSELN_UNESCALL)) != NULL) {
@@ -51,27 +51,54 @@ print_file(const char *path) {
 	refresh();
 }
 
-void
-menus(void) {
+static void
+server_info(void) {
 	unsigned char c;
 
-	print_file("menus/general.txt");
+	print_file("menus/server_info.txt");
 	while ((c = getch()) != 'q') {
+		continue;
+	}
+}
+
+static void
+login_user(void) {
+	unsigned char c;
+
+	print_file("menus/login.txt");
+	while ((c = getch()) != 'q') {
+		continue;
+	}
+}
+
+static void
+register_user(void) {
+	print_file("menus/register.txt");
+
+}
+
+void
+menus(void) {
+	unsigned char c = 0;
+
+	do {
 		switch (c) {
 		case 'l':
-			mvprintw(LINES - 1, 0, "s");
+			login_user();
 			break;
 		case 'r':
-			mvprintw(LINES - 1, 0, "s");
+			register_user();
 			break;
 		case 's':
-			print_file("menus/server_info.txt");
+			server_info();
+			(void)refresh();
 			break;
 		case 'q':
-			clean_up("Good Bye");
+			fclean_up("Good Bye");
 			break;
 		default:
 			break;
 		}
-	}
+		print_file("menus/general.txt");
+	} while ((c = getch()) != 'q');
 }

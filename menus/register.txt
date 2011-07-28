@@ -1,0 +1,9 @@
+#
+# the C Roguelikes games Server
+#
+
+Welcom new user. Please enter a username.
+Only characters and numbers are allowed, with no spaces.
+15 character max.
+
+=> 
