@@ -83,7 +83,7 @@ logmsg(const char *fmt, ...) {
 	va_list ap;
 	FILE *fd;
 
-	fd = fopen("/tmp/crlserver.log", "w+");
+	fd = fopen("/tmp/crlserver.log", "a+");
 	if (fd == NULL)
 		clean_up(1, "fopen");
 	

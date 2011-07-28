@@ -25,6 +25,7 @@
 #include "general_menu.h"
 #include "init.h"
 #include "rlmenu.h"
+#include "log.h"
 
 /*
  * TODO: - mouse support
