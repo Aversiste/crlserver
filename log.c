@@ -90,5 +90,5 @@ logmsg(const char *fmt, ...) {
 	va_start(ap, fmt);
 	vfprintf(fd, fmt, ap);
 	va_end(ap);
-	fclose(fd);
+	(void)fclose(fd);
 }
