@@ -1,0 +1,7 @@
+name=larn
+longname=Caverns of Larn
+version=12.0
+description=roguelike
+path=/usr/games/larn
+params=
+env=

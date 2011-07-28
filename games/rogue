@@ -1,0 +1,7 @@
+name=rogue
+longname=rogue-clone
+version=III
+description=Written by Tim Stoehr
+path=/usr/games/rogue
+params=
+env=
