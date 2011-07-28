@@ -20,7 +20,7 @@
 #include "conf.h"
 #include "init.h"
 #include "pathnames.h"
-#include "rlmenu.h"
+#include "menu.h"
 
 size_t	gl_length;
 size_t	el_length;
@@ -36,7 +36,7 @@ main(void) {
 	el_length = list_size((struct list_head*)&el_head);
 
 	init();
-	menu();
+	menus();
 	end_window();
 	return (EX_OK);
 }
