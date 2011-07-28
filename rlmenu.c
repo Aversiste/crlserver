@@ -16,14 +16,14 @@
 
 #include <sys/queue.h>
 #include <curses.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <menu.h>
 #include <err.h>
-#include "rlmenu.h"
-#include "games.h"
+#include <menu.h>
+#include <stdlib.h>
+#include <unistd.h>
+
 #include "crlserver.h"
 #include "init.h"
+#include "rlmenu.h"
 
 /*
  * TODO: - mouse support
@@ -68,6 +68,7 @@ menu_opt_general(MENU **menu) {
 }
 
 /* GAMES MENU */
+/*
 static void
 init_items_game(ITEM ***items) {
 	struct games_list *glp;
@@ -83,10 +84,11 @@ static void
 menu_opt_game(MENU **menu) {
 	set_menu_spacing(*menu, TABSIZE, 0, 0);
 }
+*/
 
 void
 menu_tpl(size_t length, void (*init_items)(ITEM ***), void (*menu_opt)(MENU **)) {
-	MENU *menu;	
+	MENU *menu;
 	ITEM **items;
 	WINDOW *win;
 	unsigned int i;
@@ -103,11 +105,11 @@ menu_tpl(size_t length, void (*init_items)(ITEM ***), void (*menu_opt)(MENU **))
 		clean_up("menu error");
 	menu_opt(&menu);
 	win = newwin(LINES - 2, COLS, 1, 0);
-	keypad(win, TRUE);
-	set_menu_win(menu, win);
-	set_menu_sub(menu, derwin(win, LINES - 3, COLS - 1, 1, 1));
-	set_menu_mark(menu, " -> ");
-	box(win, 0, 0);
+	(void)keypad(win, TRUE);
+	(void)set_menu_win(menu, win);
+	(void)set_menu_sub(menu, derwin(win, LINES - 3, COLS - 1, 1, 1));
+	(void)set_menu_mark(menu, " -> ");
+	(void)box(win, 0, 0);
 
 	if (post_menu(menu) != E_OK)
 		clean_up("menu error");
@@ -118,16 +120,16 @@ menu_tpl(size_t length, void (*init_items)(ITEM ***), void (*menu_opt)(MENU **))
 	while ((c = wgetch(win)) != 'q') {
 		switch (c) {
 		case KEY_DOWN:
-			menu_driver(menu, REQ_DOWN_ITEM);
+			(void)menu_driver(menu, REQ_DOWN_ITEM);
 			break;
 		case KEY_UP:
-			menu_driver(menu, REQ_UP_ITEM);
+			(void)menu_driver(menu, REQ_UP_ITEM);
 			break;
 		case KEY_HOME:
-			menu_driver(menu, REQ_FIRST_ITEM);
+			(void)menu_driver(menu, REQ_FIRST_ITEM);
 			break;
 		case KEY_END:
-			menu_driver(menu, REQ_LAST_ITEM);
+			(void)menu_driver(menu, REQ_LAST_ITEM);
 			break;
 		case '\n':
 		case '\r':
@@ -138,7 +140,7 @@ menu_tpl(size_t length, void (*init_items)(ITEM ***), void (*menu_opt)(MENU **))
 
 				p = item_userptr(cur);
 				p(item_name(cur));
-				pos_menu_cursor(menu);
+				(void)pos_menu_cursor(menu);
 			}	
 		default:
 			break;
