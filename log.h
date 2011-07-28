@@ -23,4 +23,6 @@ void clean_up(int eval, const char *fmt, ...);
 void clean_upx(int eval, const char *fmt, ...);
 void fclean_up(const char *);
 
+void logmsg(const char *fmt, ...);
+
 #endif

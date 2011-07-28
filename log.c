@@ -57,7 +57,6 @@ clean_up(int eval, const char *fmt, ...) {
 	va_start(ap, fmt);
 	graceful_exit(eval, fmt, ap, 1);
 	va_end(ap);
-
 }
 
 void
@@ -79,4 +78,16 @@ fclean_up(const char *estr) {
 	exit(EX_SOFTWARE);
 }
 
+void
+logmsg(const char *fmt, ...) {
+	va_list ap;
+	FILE *fd;
 
+	fd = fopen("/tmp/crlserver.log", "r");
+	if (fd == NULL)
+		clean_up(1, "fopen");
+	
+	va_start(ap, fmt);
+	vfprintf(fd, fmt, ap);
+	va_end(ap);
+}
