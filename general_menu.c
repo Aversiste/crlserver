@@ -14,29 +14,29 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <stdlib.h>
-#include <sysexits.h>
+#include <curses.h>
 
-#include "conf.h"
 #include "init.h"
-#include "pathnames.h"
-#include "rlmenu.h"
 
-size_t	gl_length;
-size_t	el_length;
+void
+log_user(void) {
+	mvprintw(LINES - 1, 0, "login");
+	refresh();
+}
 
-int
-main(void) {
-	games_list_head gl_head = SLIST_HEAD_INITIALIZER(gl_head);
-	editors_list_head el_head = SLIST_HEAD_INITIALIZER(el_head);
+void
+register_user(void) {
+	mvprintw(LINES - 1, 0, "register");
+	refresh();
+}
 
-	load_folder(GAMES_DIR, &gl_head);
-	load_folder(EDITORS_DIR, &el_head);
-	gl_length = list_size((struct list_head*)&gl_head);
-	el_length = list_size((struct list_head*)&el_head);
+void
+server_info(void) {
+	mvprintw(LINES - 1, 0, "server info");
+	refresh();
+}
 
-	init();
-	menu();
-	end_window();
-	return (EX_OK);
+void
+quit(void) {
+	clean_up("Good Bye");
 }

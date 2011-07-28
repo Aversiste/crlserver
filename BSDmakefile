@@ -1,7 +1,7 @@
 #	crlserver Makefile
 
 PROG =		crlserver
-SRCS =		main.c conf.c init.c rlmenu.c rlsqlite.c
+SRCS =		main.c conf.c init.c general_menu.c rlmenu.c rlsqlite.c
 OSTYPE !=	uname -s
 
 

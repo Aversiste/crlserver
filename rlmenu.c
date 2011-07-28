@@ -22,6 +22,7 @@
 #include <unistd.h>
 
 #include "crlserver.h"
+#include "general_menu.h"
 #include "init.h"
 #include "rlmenu.h"
 
@@ -30,29 +31,18 @@
  *       - multi columns menu
  */
 
-static void
-log_user(void) {
-	mvprintw(LINES - 1, 0, "login");
-	refresh();
-}
-
-static void
-register_user(void) {
-	mvprintw(LINES - 1, 0, "register");
-	refresh();
-}
-
-static void
-quit(void) {
-	clean_up("Good Bye");
-}
-
-/* GENERAL MENU */
+/* 
+ * GENERAL MENU
+ *
+ * funcs[] are defined in general_menu.h
+ *
+ */
 static void
 init_items_general(ITEM ***items) {
 	unsigned int i = 0;
-	const char *names[] = {"Login", "Register", "Quit"};
-	const callback funcs[] = {&log_user, &register_user, &quit};
+	const char *names[] = {"Login", "Register", "Server info", "Quit"};
+	const callback funcs[] = {log_user, register_user,
+		&server_info, &quit};
 
 	for (i = 0; i < sizeof(names) / sizeof(names[0]); ++i) {
 		(*items)[i] = new_item(names[i], names[i]);
@@ -162,5 +152,5 @@ menu(void) {
 	mvaddstr(LINES - 1, 1, "Not curently logged in");
 	attroff(A_REVERSE);
 	refresh();
-	menu_tpl(3, &init_items_general, &menu_opt_general);
+	menu_tpl(4, &init_items_general, &menu_opt_general);
 }
