@@ -14,16 +14,22 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef GET_GAMES_H_
-#define GET_GAMES_H_
+#ifndef CONF_H__
+#define CONF_H__
 
 #include <sys/queue.h>
 
-SLIST_HEAD(games_list_head, games_list);
-int init_games(struct games_list_head *);
-void release_games(struct games_list_head *);
+SLIST_HEAD(list_head, list);
+typedef struct list_head games_list_head;
+typedef struct list_head editors_list_head;
+typedef struct list games_list;
+typedef struct list editors_list;
 
-struct games_list {
+void load_folder(const char*, struct list_head*);
+void list_release(struct list_head*);
+size_t list_size(struct list_head*);
+
+struct list {
 	char *name;
 	char *lname;
 	char *version;
@@ -31,7 +37,7 @@ struct games_list {
 	char *path;
 	char *params;
 	char *env;
-	SLIST_ENTRY(games_list) gls;
+	SLIST_ENTRY(list) ls;
 };
 
 #endif

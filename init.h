@@ -21,6 +21,5 @@ void clean_up(const char*);
 void init(void);
 void start_window(void);
 __inline void end_window(void);
-void init_gl_length(void);
 
 #endif

@@ -14,28 +14,28 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#ifdef __OpenBSD__
+# include <util.h>
+# define MAXNAMLEN       255
+#elif __Linux__
+# define __USE_BSD
+# define _BSD_SOURCE
+# include "compat/util.h"
+#endif
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/queue.h>
 #include <sysexits.h>
+#include <dirent.h>
 #include <err.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
-#ifdef __OpenBSD__
-# include <util.h>
-# define MAXNAMLEN       255
-#elif __Linux__
-# define __USE_BSD
-# include "compat/util.h"
-#endif
-
-#include <dirent.h>
-
 #include "pathnames.h"
-#include "games.h"
+#include "conf.h"
 
 #define FPARSELN(x)	fparseln((x), NULL, NULL, NULL, FPARSELN_UNESCALL)
 
@@ -46,12 +46,12 @@ file_size(const char *path) {
 	return (int)s.st_size;
 }
 
-static struct games_list*
+static struct list*
 parse(FILE *fd) {
 	char *b;
-	struct games_list *gl = calloc(1, sizeof *gl);
+	struct list *l = calloc(1, sizeof *l);
 
-	if (gl == NULL)
+	if (l == NULL)
 		return NULL;
 
 	while ((b = FPARSELN(fd)) != NULL) {
@@ -59,76 +59,82 @@ parse(FILE *fd) {
 		char *value = strtok(NULL, "=");
 
 		if (strncmp("name", key, 4) == 0 && value != NULL)
-			gl->name = strdup(value);
+			l->name = strdup(value);
 		else if (strncmp("longname", key, 8) == 0 && value != NULL)
-			gl->lname = strdup(value);
+			l->lname = strdup(value);
 		else if (strncmp("version", key, 7) == 0 && value != NULL)
-			gl->version = strdup(value);
+			l->version = strdup(value);
 		else if (strncmp("description", key, 10) == 0 && value != NULL)
-			gl->desc= strdup(value);
+			l->desc= strdup(value);
 		else if (strncmp("path", key, 4) == 0 && value != NULL)
-			gl->path = strdup(value);
+			l->path = strdup(value);
 		else if (strncmp("params", key, 6) == 0 && value != NULL)
-			gl->params = strdup(value);
+			l->params = strdup(value);
 		else if (strncmp("env", key, 3) == 0 && value != NULL)
-			gl->env = strdup(value);
+			l->env = strdup(value);
 		free(b);
 	}
-	return gl;
+	return l;
 }
 
-int
-init_games(struct games_list_head *gl_head) {
-	DIR* dir = opendir(GAMES_DIR);
+void
+load_folder(const char *path, struct list_head *lh) {
 	struct dirent* dp;
+	DIR* dir = opendir(path);
 
 	if (dir == NULL)
-		err(EX_IOERR, "Can't open %s\n", GAMES_DIR);
+		err(EX_IOERR, "Can't open %s\n", path);
 
 	while ((dp = readdir(dir)) != NULL) {
 		char buf[ (MAXNAMLEN + 1) * 2 ];
 		FILE* fd;
-		struct games_list *glp;
+		struct list *lp;
 
-		if (dp->d_type != DT_REG && dp->d_type != DT_LNK)
-			continue;
-
-		(void)snprintf(buf, strlen(GAMES_DIR) + strlen(dp->d_name) + 2, 
-				"%s/%s\n", GAMES_DIR, dp->d_name);
-		if (file_size(buf) == 0)	
+		/* Skip non-regular files and empty files. */
+		(void)snprintf(buf, strlen(path) + dp->d_namlen + 2, 
+				"%s/%s\n", path, dp->d_name);
+		if ((dp->d_type != DT_REG && dp->d_type != DT_LNK)
+			|| file_size(buf) == 0)
 			continue;
 
 		fd = fopen(buf, "r");
 		if (fd == NULL) {
-			perror("get_games: ");
+			warn("%s", buf);
 			continue;
 		}
 
-		glp = parse(fd);
-		if (glp != NULL)
-			SLIST_INSERT_HEAD(gl_head, glp, gls);
-
+		lp = parse(fd);
+		if (lp != NULL)
+			SLIST_INSERT_HEAD(lh, lp, ls);
 		(void)fclose(fd);
 	}
-
 	(void)closedir(dir);
-	return 0;
 }
 
 void
-release_games(struct games_list_head *gl_head) {
-	struct games_list *glp;
-	while (!SLIST_EMPTY(gl_head)) {
-		glp = SLIST_FIRST(gl_head);
-		SLIST_REMOVE_HEAD(gl_head, gls);
+list_release(struct list_head *lh) {
+	struct list *lp;
+	while (!SLIST_EMPTY(lh)) {
+		lp = SLIST_FIRST(lh);
+		SLIST_REMOVE_HEAD(lh, ls);
 
-		free(glp->name);
-		free(glp->lname);
-		free(glp->version);
-		free(glp->desc);
-		free(glp->path);
-		free(glp->params);
-		free(glp->env);
-		free(glp);
+		free(lp->name);
+		free(lp->lname);
+		free(lp->version);
+		free(lp->desc);
+		free(lp->path);
+		free(lp->params);
+		free(lp->env);
+		free(lp);
 	}
+}
+
+size_t
+list_size(struct list_head *lh) {
+	size_t s = 0;
+	struct list *lp;
+
+	SLIST_FOREACH(lp, lh, ls)
+		++s;
+	return s;
 }

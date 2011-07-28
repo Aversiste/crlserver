@@ -14,22 +14,18 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <stdlib.h>
-#include <sys/queue.h>
-#include <sysexits.h>
-#include <err.h>
 #include <curses.h>
+#include <err.h>
+#include <stdlib.h>
+#include <sysexits.h>
+#include <sys/queue.h>
 
-#include "init.h"
-#include "games.h"
-#include "rlsqlite.h"
 #include "crlserver.h"
+#include "init.h"
+#include "rlsqlite.h"
 
 void
 init(void) {
-	SLIST_INIT(&gl_head);
-	init_games(&gl_head);
-	init_gl_length();
 	sqlite_init();
 
 	initscr();
@@ -63,15 +59,4 @@ clean_up(const char *estr) {
 	end_window();
 	(void)printf("\n%s\n", estr);
 	exit(EX_SOFTWARE);
-}
-
-void
-init_gl_length(void) {
-	size_t s = 0;
-	struct games_list *glp;
-
-	SLIST_FOREACH(glp, &gl_head, gls)
-		++s;
-
-	gl_length = s;
 }
