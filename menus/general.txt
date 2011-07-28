@@ -1,0 +1,14 @@
+#
+# the C Roguelikes games Server
+#
+
+Not logged in.
+
+ l) Login
+ r) Register new user
+ 
+ s) Server info
+
+ q) Quit
+ 
+ => 

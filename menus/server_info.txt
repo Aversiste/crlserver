@@ -1,0 +1,5 @@
+#
+# the C Roguelikes games Server
+#
+
+bla bla
