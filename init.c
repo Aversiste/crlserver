@@ -21,8 +21,8 @@
 #include <sys/queue.h>
 
 #include "crlserver.h"
+#include "db.h"
 #include "init.h"
-#include "rlsqlite.h"
 #include "log.h"
 
 void

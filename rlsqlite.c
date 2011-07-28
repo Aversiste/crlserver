@@ -19,8 +19,8 @@
 #include <stdlib.h>
 #include <sqlite3.h>
 
+#include "db.h"
 #include "init.h"
-#include "rlsqlite.h"
 #include "log.h"
 
 static void
