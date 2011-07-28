@@ -19,63 +19,66 @@
 #include <stdlib.h>
 #include <err.h>
 #include <sqlite3.h>
+
+#include "init.h"
 #include "rlsqlite.h"
+
+static void
+sqlite_cmd(char *query) {
+	sqlite3 *db;
+	char *err;
+	int ret;
+	
+	if (sqlite3_open(RL_SQLITE_DB, &db) != SQLITE_OK) {
+		sqlite3_free(query);
+		clean_up("sqlite3_init"); /* XXX: Probably not the best exit value */
+	}
+
+	(void)sqlite3_busy_timeout(db, 10000);
+	ret = sqlite3_exec(db, query, NULL, NULL, &err);
+
+	sqlite3_free(query);
+	if (ret != SQLITE_OK) {
+		sqlite3_close(db);
+		clean_up(err);
+	}
+	sqlite3_close(db);
+}
 
 void
 sqlite_init(void) {
-	sqlite3 *pDb;
-	char *qbuf;
-	int ret;
-	
-	pDb = malloc(sizeof(pDb));
-	if (pDb == NULL)
-		err(1, "sqlite_init: allocation error");
-	if (sqlite3_open(RL_SQLITE_DB, &pDb) != SQLITE_OK)
-		err(1, "sqlite3_open");
-
-	qbuf = sqlite3_mprintf("CREATE TABLE IF NOT EXISTS users \
+	/* XXX: Check that the nick doesn'h already exist*/
+	char *query = sqlite3_mprintf("CREATE TABLE IF NOT EXISTS users \
 		(id INTEGER PRIMARY KEY AUTOINCREMENT, \
 		 name TEXT, \
 		 email TEXT, \
 		 password TEXT);");
 
-	sqlite3_busy_timeout(pDb, 10000);
-	ret = sqlite3_exec(pDb, qbuf, NULL, NULL, NULL);
+	if (query == NULL)
+		err(1, "sqlite_insert");
 
-	sqlite3_free(qbuf);
-	if (ret != SQLITE_OK) {
-		sqlite3_close(pDb);
-		errx(1, "sqlite");
-	}
-	sqlite3_close(pDb);
+	sqlite_cmd(query);
 }
 
 void
 sqlite_insert(const char *name, const char *email, const char *password) {
-	sqlite3 *pDb;
-	char *qbuf;
-	int ret;
-	
-	pDb = malloc(sizeof(pDb));
-	if (pDb == NULL)
-		err(1, "sqlite_init: allocation error");
-	if (sqlite3_open(RL_SQLITE_DB, &pDb) != SQLITE_OK)
-		err(1, "sqlite3_open");
-
-	qbuf = sqlite3_mprintf("INSERT INTO users \
+	char *query = sqlite3_mprintf("INSERT INTO users \
 		(name, email, password) VALUES \
 		 (%q, %q, %q);", name, email, password);
 
-	sqlite3_busy_timeout(pDb, 10000);
-	ret = sqlite3_exec(pDb, qbuf, NULL, NULL, NULL);
+	if (query == NULL)
+		err(1, "sqlite_insert");
 
-	sqlite3_free(qbuf);
-	if (ret != SQLITE_OK) {
-		sqlite3_close(pDb);
-		errx(1, "sqlite");
-	}
-	sqlite3_close(pDb);
+	sqlite_cmd(query);
 }
-/*
-qbuf = sqlite3_mprintf("update users set username='%q', email='%q', password='%q' where id=%i", me->username, me->email, me->password, me->id);
-*/
+
+void
+sqlite_update(unsigned int id, const char *name, const char *email, const char *password) {
+	char *query = sqlite3_mprintf("UPDATE users \
+		SET name=%q, email=%q, password=%q \
+		WHERE id=%i;", name, email, password, id);
+	if (query == NULL)
+		err(1, "sqlite_insert");
+
+	sqlite_cmd(query);
+}

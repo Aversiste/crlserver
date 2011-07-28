@@ -17,10 +17,17 @@
 #ifndef CRLSERVER_SQLITE_H_
 #define CRLSERVER_SQLITE_H_
 
-#define RL_SQLITE_DB "/tmp/crlserver.db"
+#ifdef SQLITE_FLAVOR
 
+# define db_init   sqlite_init
+# define db_insert sqlite_insert
+# define db_update sqlite_update
+
+# define RL_SQLITE_DB "/tmp/crlserver.db"
 void sqlite_init(void);
 void sqlite_insert(const char *, const char *, const char *);
-void sqlite_update(unsigned int, const char *, const char *, const char *);
+void sqlite_update(const char *, const char *, const char *);
+
+#endif /* SQLITE_FLAVOR */
 
 #endif
