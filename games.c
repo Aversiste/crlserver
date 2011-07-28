@@ -18,18 +18,25 @@
 #include <sys/stat.h>
 #include <sys/queue.h>
 #include <sysexits.h>
-#include <dirent.h>
 #include <err.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <util.h>
 #include <unistd.h>
+
+#ifdef __OpenBSD__
+# include <util.h>
+# define MAXNAMLEN       255
+#elif __Linux__
+# define __USE_BSD
+# include "compat/util.h"
+#endif
+
+#include <dirent.h>
 
 #include "pathnames.h"
 #include "games.h"
 
-#define MAXNAMLEN       255
 #define FPARSELN(x)	fparseln((x), NULL, NULL, NULL, FPARSELN_UNESCALL)
 
 static int
@@ -86,7 +93,7 @@ init_games(struct games_list_head *gl_head) {
 		if (dp->d_type != DT_REG && dp->d_type != DT_LNK)
 			continue;
 
-		(void)snprintf(buf, strlen(GAMES_DIR) + dp->d_namlen + 2, 
+		(void)snprintf(buf, strlen(GAMES_DIR) + strlen(dp->d_name) + 2, 
 				"%s/%s\n", GAMES_DIR, dp->d_name);
 		if (file_size(buf) == 0)	
 			continue;
