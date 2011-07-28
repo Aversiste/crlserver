@@ -52,7 +52,7 @@ ret = sqlite3_exec(db, qbuf, NULL, NULL, &errmsg);
 sqlite3_free(qbuf);
 if (ret != SQLITE_OK) {
 	sqlite3_close(db);
-	/* error message */
+	 error message 
 }
 sqlite3_close(db);
 */
