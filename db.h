@@ -26,7 +26,7 @@
 # define RL_SQLITE_DB "/tmp/crlserver.db"
 void sqlite_init(void);
 void sqlite_insert(const char *, const char *, const char *);
-void sqlite_update(const char *, const char *, const char *);
+void sqlite_update(unsigned int, const char *, const char *, const char *);
 
 #endif /* SQLITE_FLAVOR */
 
