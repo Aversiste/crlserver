@@ -14,12 +14,15 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef CRLSERVER_SQLITE_H_
-#define CRLSERVER_SQLITE_H_
+#include <stdarg.h>
 
-#define RL_SQLITE_CREATE "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, names TEXT);"
-#define RL_SQLITE_DB "/tmp/crlserver.db"
+#ifndef LOG_H__
+#define LOG_H__
 
-void sqlite_init(void);
+void clean_up(int eval, const char *fmt, ...);
+void clean_upx(int eval, const char *fmt, ...);
+void fclean_up(const char *);
+
+void logmsg(const char *fmt, ...);
 
 #endif

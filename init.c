@@ -21,8 +21,9 @@
 #include <sys/queue.h>
 
 #include "crlserver.h"
+#include "db.h"
 #include "init.h"
-#include "rlsqlite.h"
+#include "log.h"
 
 void
 init(void) {
@@ -36,7 +37,7 @@ init(void) {
 	start_window();
 
 	if ((LINES < DROWS) || (COLS < DCOLS))
-		clean_up("must be displayed on 24 x 80 screen (or larger)");
+		fclean_up("must be displayed on 24 x 80 screen (or larger)");
 }
 
 void
@@ -50,13 +51,4 @@ start_window(void) {
 __inline void
 end_window() {
 	(void)endwin();
-}
-
-void
-clean_up(const char *estr) {
-	(void)move(DROWS-1, 0);
-	(void)refresh();
-	end_window();
-	(void)printf("\n%s\n", estr);
-	exit(EX_SOFTWARE);
 }

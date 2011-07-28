@@ -14,6 +14,14 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/queue.h>
+#include <sysexits.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <stdio.h>
+
 #ifdef __OpenBSD__
 # include <util.h>
 # define MAXNAMLEN       255
@@ -23,19 +31,12 @@
 # include "compat/util.h"
 #endif
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/queue.h>
-#include <sysexits.h>
 #include <dirent.h>
-#include <err.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 
-#include "pathnames.h"
 #include "conf.h"
+#include "pathnames.h"
+#include "log.h"
 
 #define FPARSELN(x)	fparseln((x), NULL, NULL, NULL, FPARSELN_UNESCALL)
 
@@ -83,7 +84,7 @@ load_folder(const char *path, struct list_head *lh) {
 	DIR* dir = opendir(path);
 
 	if (dir == NULL)
-		err(EX_IOERR, "Can't open %s\n", path);
+		clean_up(EX_IOERR, "Can't open %s\n", path);
 
 	while ((dp = readdir(dir)) != NULL) {
 		char buf[ (MAXNAMLEN + 1) * 2 ];
@@ -91,7 +92,7 @@ load_folder(const char *path, struct list_head *lh) {
 		struct list *lp;
 
 		/* Skip non-regular files and empty files. */
-		(void)snprintf(buf, strlen(path) + dp->d_namlen + 2, 
+		(void)snprintf(buf, strlen(path) + strlen(dp->d_name) + 2, 
 				"%s/%s\n", path, dp->d_name);
 		if ((dp->d_type != DT_REG && dp->d_type != DT_LNK)
 			|| file_size(buf) == 0)
@@ -99,7 +100,7 @@ load_folder(const char *path, struct list_head *lh) {
 
 		fd = fopen(buf, "r");
 		if (fd == NULL) {
-			warn("%s", buf);
+			logmsg("%s", buf);
 			continue;
 		}
 
