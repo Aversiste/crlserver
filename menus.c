@@ -14,143 +14,64 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#ifdef __OpenBSD__
+# include <util.h>
+#elif __Linux__
+# include "compat/util.h"
+#endif
+
 #include <sys/queue.h>
 #include <curses.h>
 #include <err.h>
-#include <menu.h>
 #include <stdlib.h>
 #include <unistd.h>
 
 #include "crlserver.h"
 #include "general_menu.h"
 #include "init.h"
-#include "rlmenu.h"
-
-/*
- * TODO: - mouse support
- *       - multi columns menu
- */
-
-/* 
- * GENERAL MENU
- *
- * funcs[] are defined in general_menu.h
- *
- */
-static void
-init_items_general(ITEM ***items) {
-	unsigned int i = 0;
-	const char *names[] = {"Login", "Register", "Server info", "Quit"};
-	const callback funcs[] = {log_user, register_user,
-		&server_info, &quit};
-
-	for (i = 0; i < sizeof(names) / sizeof(names[0]); ++i) {
-		(*items)[i] = new_item(names[i], names[i]);
-		set_item_userptr((*items)[i], funcs[i]);
-	}
-}
-
-static void
-menu_opt_general(MENU **menu) {
-	set_menu_spacing(*menu, TABSIZE, 0, 0);
-	menu_opts_off(*menu, O_SHOWDESC);
-	menu_opts_off(*menu, O_NONCYCLIC);
-}
-
-/* GAMES MENU */
-/*
-static void
-init_items_game(ITEM ***items) {
-	struct games_list *glp;
-	unsigned int i = 0;
-
-	SLIST_FOREACH(glp, &gl_head, gls) {
-		(*items)[i] = new_item(glp->name, glp->version);
-		++i;
-	}
-}
-
-static void
-menu_opt_game(MENU **menu) {
-	set_menu_spacing(*menu, TABSIZE, 0, 0);
-}
-*/
+#include "menus.h"
 
 void
-menu_tpl(size_t length, void (*init_items)(ITEM ***), void (*menu_opt)(MENU **)) {
-	MENU *menu;
-	ITEM **items;
-	WINDOW *win;
-	unsigned int i;
-	unsigned int c;
+print_file(const char *path) {
+	FILE *fd = fopen(path, "r");
+	int y = 0;
+	char *buf;
+	const char sep[3] = {'\\', '\\', 0};
 
-	items = calloc(length, sizeof(*items));
-	if (items == (ITEM**)NULL)
-		clean_up("items error");
-	init_items(&items);
-	items[length] = (ITEM*)NULL;
+	(void)erase();
+	if (fd == NULL)
+		clean_up("Important file is missing");
 
-	menu = new_menu(items);
-	if (menu == (MENU*)NULL)
-		clean_up("menu error");
-	menu_opt(&menu);
-	win = newwin(LINES - 2, COLS, 1, 0);
-	(void)keypad(win, TRUE);
-	(void)set_menu_win(menu, win);
-	(void)set_menu_sub(menu, derwin(win, LINES - 3, COLS - 1, 1, 1));
-	(void)set_menu_mark(menu, " -> ");
-	(void)box(win, 0, 0);
+	while ((buf = fparseln(fd, NULL, NULL,
+	  sep, FPARSELN_UNESCALL)) != NULL) {
+		mvprintw(y, 1, buf);
+		free(buf);
+		++y;
+	}
+	refresh();
+}
 
-	if (post_menu(menu) != E_OK)
-		clean_up("menu error");
+void
+menus(void) {
+	unsigned char c;
 
-	(void)refresh();
-	(void)wrefresh(win);
-
-	while ((c = wgetch(win)) != 'q') {
+	print_file("menus/general.txt");
+	while ((c = getch()) != 'q') {
 		switch (c) {
-		case KEY_DOWN:
-			(void)menu_driver(menu, REQ_DOWN_ITEM);
+		case 'l':
+			mvprintw(LINES - 1, 0, "s");
 			break;
-		case KEY_UP:
-			(void)menu_driver(menu, REQ_UP_ITEM);
+		case 'r':
+			mvprintw(LINES - 1, 0, "s");
 			break;
-		case KEY_HOME:
-			(void)menu_driver(menu, REQ_FIRST_ITEM);
+		case 's':
+			print_file("menus/server_info.txt");
 			break;
-		case KEY_END:
-			(void)menu_driver(menu, REQ_LAST_ITEM);
+		case 'q':
+			clean_up("Good Bye");
 			break;
-		case '\n':
-		case '\r':
-		case KEY_ENTER:
-			{
-				ITEM *cur = current_item(menu);
-				void (*p)(const char*);
-
-				p = item_userptr(cur);
-				p(item_name(cur));
-				(void)pos_menu_cursor(menu);
-			}	
 		default:
 			break;
 		}
-		(void)wrefresh(win);
 	}
-
-	(void)unpost_menu(menu);
-	(void)free_menu(menu);
-	for (i = 0; i < length; ++i)
-		(void)free_item(items[i]);
-	(void)delwin(win);
-}
-
-void
-menu(void) {
-	attron(A_REVERSE);
-	mvaddstr(0, 1, "General Menu - crlserver");
-	mvaddstr(LINES - 1, 1, "Not curently logged in");
-	attroff(A_REVERSE);
-	refresh();
-	menu_tpl(4, &init_items_general, &menu_opt_general);
 }
