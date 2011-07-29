@@ -29,6 +29,7 @@
 #include <unistd.h>
 
 #include "crlserver.h"
+#include "db.h"
 #include "init.h"
 #include "log.h"
 #include "menus.h"
@@ -218,6 +219,7 @@ register_user(void) {
 			logmsg("Password are not equal\n");
 			return;
 		}
+		db_insert(vars[0], vars[1], vars[2]);
 	}
 	
 	unpost_form(my_form);
