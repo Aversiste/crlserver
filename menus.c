@@ -234,16 +234,20 @@ menus(void) {
 	do {
 		switch (c) {
 		case 'l':
+		case 'L':
 			login_user();
 			break;
 		case 'r':
+		case 'R':
 			register_user();
 			break;
 		case 's':
+		case 'S':
 			server_info();
 			(void)refresh();
 			break;
 		case 'q':
+		case 'Q':
 			fclean_up("Good Bye");
 			break;
 		default:
