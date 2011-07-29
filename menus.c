@@ -56,12 +56,8 @@ print_file(const char *path) {
 
 static void
 server_info(void) {
-	unsigned char c;
-
 	print_file("menus/server_info.txt");
-	while ((c = getch()) != 'q') {
-		continue;
-	}
+	getch();
 }
 
 static void
