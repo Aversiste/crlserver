@@ -23,6 +23,7 @@
 #include <sys/queue.h>
 #include <curses.h>
 #include <err.h>
+#include <form.h>
 #include <stdlib.h>
 #include <unistd.h>
 
@@ -71,10 +72,82 @@ login_user(void) {
 	}
 }
 
+#define CRLS_MAXNAMELEN 20
+
 static void
 register_user(void) {
-	print_file("menus/register.txt");
+	FIELD *fields[5] = {0, 0, 0, 0, 0};
+	FORM  *my_form;
+	unsigned int i, ch;
+	bool quit = false;
 
+	curs_set(1); /* Print the cursor */
+	for (i = 0; i < 4; ++i) {
+		fields[i] = new_field(1, CRLS_MAXNAMELEN, 4 + i, 18, 0, 0);
+		field_opts_off(fields[i], O_AUTOSKIP);
+	}
+
+	/* Protect the password fields */
+	for (i = 2; fields[i] != NULL; ++i)
+		field_opts_off(fields[i], O_PUBLIC);
+
+	my_form = new_form(fields);
+	post_form(my_form);
+	print_file("menus/register.txt");
+	refresh();
+
+	for (i = 0, ch = 0; quit == false; (ch = getch())) {
+		switch(ch) {
+		case KEY_DOWN:
+		case '\t':
+			form_driver(my_form, REQ_NEXT_FIELD);
+			form_driver(my_form, REQ_END_LINE);
+			break;
+		case KEY_UP:
+			form_driver(my_form, REQ_PREV_FIELD);
+			form_driver(my_form, REQ_END_LINE);
+			break;
+		case KEY_RIGHT:
+			form_driver(my_form, REQ_NEXT_CHAR);
+			break;
+		case KEY_LEFT:
+			form_driver(my_form, REQ_PREV_CHAR);
+			break;
+		case KEY_DC:
+			form_driver(my_form, REQ_DEL_CHAR);
+			break;
+		case KEY_BACKSPACE:
+			form_driver(my_form, REQ_DEL_PREV);
+			break;
+		case KEY_HOME:
+			form_driver(my_form, REQ_BEG_FIELD);
+			break;
+		case KEY_END:
+			form_driver(my_form, REQ_END_FIELD);
+			break;
+		case KEY_ENTER:
+		case '\n':
+		case '\r':
+			form_driver(my_form, REQ_VALIDATION);
+			quit = true;		
+			break;
+		default:
+			form_driver(my_form, ch);
+			break;
+		}
+	}
+	
+	mvprintw(15, 1, "[%s] %i", field_buffer(fields[0], 0), field_status(fields[0]));
+	mvprintw(16, 1, "[%s] %i", field_buffer(fields[1], 0), field_status(fields[1]));
+	mvprintw(17, 1, "[%s] %i", field_buffer(fields[2], 0), field_status(fields[2]));
+	mvprintw(18, 1, "[%s] %i", field_buffer(fields[3], 0), field_status(fields[3]));
+	refresh();
+
+	unpost_form(my_form);
+	free_form(my_form);
+	for (i = 0; i < 4; ++i)
+		free_field(fields[i]);
+	curs_set(0); /* Remove the cursor */
 }
 
 void

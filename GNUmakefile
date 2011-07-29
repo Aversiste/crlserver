@@ -12,7 +12,7 @@ CFLAGS +=	-Wall -Wextra -ansi -pedantic -I/usr/local/include
 CFLAGS += 	-g
 CFLAGS +=	-D__${OSTYPE}__ -I./compat
 CFLAGS +=	-DSQLITE_FLAVOR
-LDFLAGS+=	-L/usr/local/lib -lcurses -lmenu -lsqlite3 -lbsd
+LDFLAGS+=	-L/usr/local/lib -lcurses -lform -lsqlite3 -lbsd
 
 OBJS=	${SRCS:.c=.o}
 

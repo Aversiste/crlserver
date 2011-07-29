@@ -1,0 +1,8 @@
+#
+# the C Roguelikes games Server
+#
+
+Username:       [                    ]
+e-mail:         [                    ]
+password:       [                    ]
+password (re):  [                    ]
