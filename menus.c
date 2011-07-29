@@ -24,6 +24,7 @@
 #include <curses.h>
 #include <err.h>
 #include <form.h>
+#include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
 
@@ -121,10 +122,6 @@ login_user(void) {
 		}
 	}
 	
-	mvprintw(15, 1, "[%s] %i", field_buffer(fields[0], 0), field_status(fields[0]));
-	mvprintw(16, 1, "[%s] %i", field_buffer(fields[1], 0), field_status(fields[1]));
-	refresh();
-
 	unpost_form(my_form);
 	free_form(my_form);
 	free_field(fields[0]);
@@ -195,13 +192,34 @@ register_user(void) {
 			break;
 		}
 	}
-	
-	mvprintw(15, 1, "[%s] %i", field_buffer(fields[0], 0), field_status(fields[0]));
-	mvprintw(16, 1, "[%s] %i", field_buffer(fields[1], 0), field_status(fields[1]));
-	mvprintw(17, 1, "[%s] %i", field_buffer(fields[2], 0), field_status(fields[2]));
-	mvprintw(18, 1, "[%s] %i", field_buffer(fields[3], 0), field_status(fields[3]));
-	refresh();
 
+	{
+		unsigned int i;
+		char *vars[4] = {0, 0, 0, 0};
+		size_t pass_size;
+
+		vars[0] = field_buffer(fields[0], 0);
+		vars[1] = field_buffer(fields[1], 0);
+		vars[2] = field_buffer(fields[2], 0);
+		vars[3] = field_buffer(fields[3], 0);
+
+		for (i = 0; i < 4; ++i) {
+			char *c = strchr(vars[i], ' ');
+			if (c != NULL)
+				*c = '\0';
+			if (strlen(vars[i]) < 1) {
+				logmsg("A field is really to small\n");
+				return;
+			}
+		}
+		pass_size = strlen(vars[2]);
+
+		if (strncmp(vars[2], vars[3], pass_size) != 0) {
+			logmsg("Password are not equal\n");
+			return;
+		}
+	}
+	
 	unpost_form(my_form);
 	free_form(my_form);
 	for (i = 0; i < 4; ++i)
