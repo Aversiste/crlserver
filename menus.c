@@ -32,6 +32,8 @@
 #include "log.h"
 #include "menus.h"
 
+#define CRLS_MAXNAMELEN 20
+
 void
 print_file(const char *path) {
 	FILE *fd = fopen(path, "r");
@@ -64,15 +66,76 @@ server_info(void) {
 
 static void
 login_user(void) {
-	unsigned char c;
+	FIELD *fields[3] = {0, 0, 0};
+	FORM  *my_form;
+	unsigned int i, ch;
+	bool quit = false;
 
-	print_file("menus/login.txt");
-	while ((c = getch()) != 'q') {
-		continue;
+	curs_set(1); /* Print the cursor */
+	for (i = 0; i < 2; ++i) {
+		fields[i] = new_field(1, CRLS_MAXNAMELEN, 4 + i, 18, 0, 0);
+		field_opts_off(fields[i], O_AUTOSKIP);
 	}
-}
+	/* Protect the password */
+	field_opts_off(fields[1], O_PUBLIC);
 
-#define CRLS_MAXNAMELEN 20
+	my_form = new_form(fields);
+	post_form(my_form);
+	print_file("menus/login.txt");
+	refresh();
+
+	for (i = 0, ch = 0; quit == false; (ch = getch())) {
+		switch(ch) {
+		case KEY_DOWN:
+		case '\t':
+			form_driver(my_form, REQ_NEXT_FIELD);
+			form_driver(my_form, REQ_END_LINE);
+			break;
+		case KEY_UP:
+			form_driver(my_form, REQ_PREV_FIELD);
+			form_driver(my_form, REQ_END_LINE);
+			break;
+		case KEY_RIGHT:
+			form_driver(my_form, REQ_NEXT_CHAR);
+			break;
+		case KEY_LEFT:
+			form_driver(my_form, REQ_PREV_CHAR);
+			break;
+		case KEY_DC:
+			form_driver(my_form, REQ_DEL_CHAR);
+			break;
+		case KEY_BACKSPACE:
+			form_driver(my_form, REQ_DEL_PREV);
+			break;
+		case KEY_HOME:
+			form_driver(my_form, REQ_BEG_FIELD);
+			break;
+		case KEY_END:
+			form_driver(my_form, REQ_END_FIELD);
+			break;
+		case KEY_ENTER:
+		case '\n':
+		case '\r':
+			form_driver(my_form, REQ_VALIDATION);
+			quit = true;		
+			break;
+		default:
+			form_driver(my_form, ch);
+			break;
+		}
+	}
+	
+	mvprintw(15, 1, "[%s] %i", field_buffer(fields[0], 0), field_status(fields[0]));
+	mvprintw(16, 1, "[%s] %i", field_buffer(fields[1], 0), field_status(fields[1]));
+	refresh();
+
+	unpost_form(my_form);
+	free_form(my_form);
+	free_field(fields[0]);
+	free_field(fields[1]);
+	curs_set(0); /* Remove the cursor */
+
+}
 
 static void
 register_user(void) {

@@ -2,6 +2,5 @@
 # the C Roguelikes games Server
 #
 
-Please enter your username. (blank entry aborts)
-
-=> 
+Username:       [                    ]
+password:       [                    ]
