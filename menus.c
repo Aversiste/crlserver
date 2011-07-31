@@ -98,7 +98,7 @@ user_menu(void) {
 	getch();
 }
 
-static void
+__inline void
 server_info(void) {
 	print_file("menus/server_info.txt");
 	getch();
