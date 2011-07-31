@@ -29,10 +29,12 @@
 #include <unistd.h>
 
 #include "crlserver.h"
+#include "conf.h"
 #include "db.h"
 #include "init.h"
 #include "log.h"
 #include "menus.h"
+#include "pathnames.h"
 
 #define CRLS_MAXNAMELEN 20
 
@@ -57,12 +59,40 @@ print_file(const char *path) {
 }
 
 static void
+games_menu(void) {
+	print_file("menus/games.txt");
+	getch();
+}
+
+static void
+user_menu(void) {
+	size_t	gl_length;
+	games_list_head gl_head = SLIST_HEAD_INITIALIZER(gl_head);
+	games_list *glp;
+	unsigned int i = 5;
+
+	load_folder(GAMES_DIR, &gl_head);
+	gl_length = list_size((struct list_head*)&gl_head);
+
+	print_file("menus/banner.txt");
+	SLIST_FOREACH(glp, &gl_head, ls) {
+		mvprintw(i, 1, "%i) %s - %s (%s)", i - 4, glp->name, glp->lname, glp->version);
+		++i;
+	}
+	refresh();
+	getch();
+	games_menu();
+	getch();
+}
+
+static void
 server_info(void) {
 	print_file("menus/server_info.txt");
 	getch();
 }
 
-static void
+/* Return 0 in case of a succesfull login or -1*/
+static int
 login_user(void) {
 	FIELD *fields[3] = {0, 0, 0};
 	FORM  *my_form;
@@ -80,6 +110,7 @@ login_user(void) {
 	my_form = new_form(fields);
 	post_form(my_form);
 	print_file("menus/login.txt");
+	move(4, 18); /* This is too arbitrary */
 	refresh();
 
 	do {
@@ -129,6 +160,7 @@ login_user(void) {
 	free_field(fields[0]);
 	free_field(fields[1]);
 	curs_set(0); /* Remove the cursor */
+	return 0;
 }
 
 static void
@@ -151,6 +183,7 @@ register_user(void) {
 	my_form = new_form(fields);
 	post_form(my_form);
 	print_file("menus/register.txt");
+	move(4, 18); /* This is too arbitrary */
 	refresh();
 
 	do {
@@ -239,7 +272,12 @@ menus(void) {
 		switch (c) {
 		case 'l':
 		case 'L':
-			login_user();
+			if (login_user() == 0)
+				user_menu();
+			else {
+				mvaddstr(14, 1, "Error");
+				sleep(1);
+			}
 			break;
 		case 'r':
 		case 'R':
