@@ -88,7 +88,7 @@ sqlite_update(unsigned int id, const char *name, const char *email, const char *
 	sqlite_cmd(query);
 }
 
-void
+int
 do_user_exist(const char *name) {
 	int ret;
 	char *query = sqlite3_mprintf("SELECT * FROM users \
@@ -101,4 +101,5 @@ do_user_exist(const char *name) {
 	ret = sqlite_cmd(query);
 	if (ret != 0)
 		logmsg("Hum ... this is the error code : %i\n", ret);
+	return ret;
 }

@@ -27,7 +27,7 @@
 void sqlite_init(void);
 void sqlite_insert(const char *, const char *, const char *);
 void sqlite_update(unsigned int, const char *, const char *, const char *);
-void do_user_exist(const char *);
+int do_user_exist(const char *);
 
 #endif /* SQLITE_FLAVOR */
 
