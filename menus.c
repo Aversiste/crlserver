@@ -176,11 +176,53 @@ login_menu(void) {
 	refresh();
 
 	form_navigation(&form);
-	
+
 	/* TODO: Stuff here */
-	
+
 	form_release(form);
 	user_menu();
+	return 0;
+}
+
+/* XXX: This function is ugly */
+static int
+sanitize(const FORM *form) {
+	FIELD **fields;
+	size_t pass_size;
+	char *pass, *pass2;
+	unsigned int i, fmax;
+	
+	fields = form_fields(form);
+	fmax = field_count(form);
+	for (i = 0; i < fmax; ++i) {
+		char *c, *s;
+
+		s = field_buffer(fields[i], 0);
+		if (s == NULL) {
+			logmsg("A field is really to small\n");
+			return -1;
+		}
+		c = strchr(s, ' ');
+		if (c != NULL)
+			*c = '\0';
+		if (strlen(s) < 1) {
+			logmsg("A field is really to small\n");
+			return -1;
+		}
+	}
+
+	pass = field_buffer(fields[2], 0);
+	pass2 = field_buffer(fields[3], 0);
+	pass_size = strlen(pass);
+	if (strncmp(pass, pass2, pass_size) != 0) {
+		logmsg("Password are not equal\n");
+		return -1;
+	}
+
+	if (do_user_exist(field_buffer(fields[0], 0)) != 0)
+		return -1;
+
+	db_insert(field_buffer(fields[0], 0), field_buffer(fields[1], 0), field_buffer(fields[2], 0));
 	return 0;
 }
 
@@ -206,35 +248,7 @@ register_menu(void) {
 
 	form_navigation(&form);
 
-	{
-		unsigned int i;
-		char *vars[4] = {0, 0, 0, 0};
-		size_t pass_size;
-
-		vars[0] = field_buffer(fields[0], 0);
-		vars[1] = field_buffer(fields[1], 0);
-		vars[2] = field_buffer(fields[2], 0);
-		vars[3] = field_buffer(fields[3], 0);
-
-		for (i = 0; i < 4; ++i) {
-			char *c = strchr(vars[i], ' ');
-			if (c != NULL)
-				*c = '\0';
-			if (strlen(vars[i]) < 1) {
-				logmsg("A field is really to small\n");
-				return;
-			}
-		}
-		pass_size = strlen(vars[2]);
-
-		if (strncmp(vars[2], vars[3], pass_size) != 0) {
-			logmsg("Password are not equal\n");
-			return;
-		}
-		do_user_exist(vars[0]);
-		db_insert(vars[0], vars[1], vars[2]);
-	}
-	
+	sanitize(form);
 	form_release(form);
 }
 
@@ -244,28 +258,27 @@ menus(void) {
 
 	do {
 		switch (c) {
-		case 'l':
-		case 'L':
-			if (login_menu() != 0) {
-				mvaddstr(14, 1, "Error");
-				sleep(1);
-			}
-			break;
-		case 'r':
-		case 'R':
-			register_menu();
-			break;
-		case 's':
-		case 'S':
-			server_info();
-			(void)refresh();
-			break;
-		case 'q':
-		case 'Q':
-			fclean_up("Good Bye");
-			break;
-		default:
-			break;
+			case 'l':
+			case 'L':
+				if (login_menu() != 0) {
+					mvaddstr(14, 1, "Error");
+					sleep(1);
+				}
+				break;
+			case 'r':
+			case 'R':
+				register_menu();
+				break;
+			case 's':
+			case 'S':
+				server_info();
+				break;
+			case 'q':
+			case 'Q':
+				fclean_up("Good Bye");
+				break;
+			default:
+				break;
 		}
 		print_file("menus/general.txt");
 	} while ((c = getch()) != 'q');
