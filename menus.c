@@ -158,7 +158,7 @@ form_navigation(FORM **form) {
 
 /* Return 0 in case of a succesfull login or -1*/
 static int
-login_user(void) {
+login_menu(void) {
 	FIELD *fields[3] = {0, 0, 0};
 	FORM  *form;
 	unsigned int i;
@@ -178,13 +178,14 @@ login_user(void) {
 	form_navigation(&form);
 	
 	/* TODO: Stuff here */
-
+	
 	form_release(form);
+	user_menu();
 	return 0;
 }
 
 static void
-register_user(void) {
+register_menu(void) {
 	FIELD *fields[5] = {0, 0, 0, 0, 0};
 	FORM  *form;
 	unsigned int i;
@@ -245,16 +246,14 @@ menus(void) {
 		switch (c) {
 		case 'l':
 		case 'L':
-			if (login_user() == 0)
-				user_menu();
-			else {
+			if (login_menu() != 0) {
 				mvaddstr(14, 1, "Error");
 				sleep(1);
 			}
 			break;
 		case 'r':
 		case 'R':
-			register_user();
+			register_menu();
 			break;
 		case 's':
 		case 'S':
