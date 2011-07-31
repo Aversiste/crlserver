@@ -23,12 +23,14 @@
 #include "init.h"
 #include "log.h"
 
-static void
+static int
 sqlite_cmd(char *query) {
 	sqlite3 *db;
 	char *err;
 	int ret;
 	
+	/* XXX: It can be usefull to see why we can't open,
+		rather than exiting */
 	if (sqlite3_open(RL_SQLITE_DB, &db) != SQLITE_OK) {
 		sqlite3_free(query);
 		clean_up(1, "sqlite3_init");
@@ -38,11 +40,10 @@ sqlite_cmd(char *query) {
 	ret = sqlite3_exec(db, query, NULL, NULL, &err);
 
 	sqlite3_free(query);
-	if (ret != SQLITE_OK) {
-		sqlite3_close(db);
-		clean_upx(1, "sqlite: %s", err);
-	}
 	sqlite3_close(db);
+	if (ret != SQLITE_OK)
+		return ret;
+	return 0;
 }
 
 void
@@ -85,4 +86,19 @@ sqlite_update(unsigned int id, const char *name, const char *email, const char *
 		clean_up(1, "sqlite_update");
 
 	sqlite_cmd(query);
+}
+
+void
+do_user_exist(const char *name) {
+	int ret;
+	char *query = sqlite3_mprintf("SELECT * FROM users \
+		WHERE name=\"%i\";", name);
+
+	logmsg("do_user_exists %s\n", name);
+	if (query == NULL)
+		clean_up(1, "sqlite_update");
+
+	ret = sqlite_cmd(query);
+	if (ret != 0)
+		logmsg("Hum ... this is the error code : %i\n", ret);
 }

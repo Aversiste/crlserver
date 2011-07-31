@@ -219,6 +219,7 @@ register_user(void) {
 			logmsg("Password are not equal\n");
 			return;
 		}
+		do_user_exist(vars[0]);
 		db_insert(vars[0], vars[1], vars[2]);
 	}
 	
