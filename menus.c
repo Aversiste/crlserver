@@ -104,15 +104,65 @@ server_info(void) {
 	getch();
 }
 
+static void
+form_navigation(FORM **form) {
+	bool quit = false;
+	unsigned int ch = 0;
+
+	curs_set(1); /* Print the cursor */
+	move(4, 18); /* This is too arbitrary */
+	do {
+		ch = getch();
+		switch(ch) {
+		case KEY_DOWN:
+		case '\t':
+			form_driver(*form, REQ_NEXT_FIELD);
+			form_driver(*form, REQ_END_LINE);
+			break;
+		case KEY_UP:
+			form_driver(*form, REQ_PREV_FIELD);
+			form_driver(*form, REQ_END_LINE);
+			break;
+		case KEY_RIGHT:
+			form_driver(*form, REQ_NEXT_CHAR);
+			break;
+		case KEY_LEFT:
+			form_driver(*form, REQ_PREV_CHAR);
+			break;
+		case KEY_DC:
+			form_driver(*form, REQ_DEL_CHAR);
+			break;
+		case KEY_BACKSPACE:
+		case 127:
+			form_driver(*form, REQ_DEL_PREV);
+			break;
+		case KEY_HOME:
+			form_driver(*form, REQ_BEG_FIELD);
+			break;
+		case KEY_END:
+			form_driver(*form, REQ_END_FIELD);
+			break;
+		case KEY_ENTER:
+		case '\n':
+		case '\r':
+			form_driver(*form, REQ_VALIDATION);
+			quit = true;		
+			break;
+		default:
+			form_driver(*form, ch);
+			break;
+		}
+	} while(quit == false);
+	curs_set(1); /* Print the cursor */
+}
+
 /* Return 0 in case of a succesfull login or -1*/
 static int
 login_user(void) {
 	FIELD *fields[3] = {0, 0, 0};
 	FORM  *form;
-	unsigned int i, ch;
-	bool quit = false;
+	unsigned int i;
 
-	curs_set(1); /* Print the cursor */
 	for (i = 0; i < 2; ++i) {
 		fields[i] = new_field(1, CRLS_MAXNAMELEN, 4 + i, 18, 0, 0);
 		field_opts_off(fields[i], O_AUTOSKIP);
@@ -123,53 +173,13 @@ login_user(void) {
 	form = new_form(fields);
 	post_form(form);
 	print_file("menus/login.txt");
-	move(4, 18); /* This is too arbitrary */
 	refresh();
 
-	do {
-		ch = getch();
-		switch(ch) {
-		case KEY_DOWN:
-		case '\t':
-			form_driver(form, REQ_NEXT_FIELD);
-			form_driver(form, REQ_END_LINE);
-			break;
-		case KEY_UP:
-			form_driver(form, REQ_PREV_FIELD);
-			form_driver(form, REQ_END_LINE);
-			break;
-		case KEY_RIGHT:
-			form_driver(form, REQ_NEXT_CHAR);
-			break;
-		case KEY_LEFT:
-			form_driver(form, REQ_PREV_CHAR);
-			break;
-		case KEY_DC:
-			form_driver(form, REQ_DEL_CHAR);
-			break;
-		case KEY_BACKSPACE:
-			form_driver(form, REQ_DEL_PREV);
-			break;
-		case KEY_HOME:
-			form_driver(form, REQ_BEG_FIELD);
-			break;
-		case KEY_END:
-			form_driver(form, REQ_END_FIELD);
-			break;
-		case KEY_ENTER:
-		case '\n':
-		case '\r':
-			form_driver(form, REQ_VALIDATION);
-			quit = true;		
-			break;
-		default:
-			form_driver(form, ch);
-			break;
-		}
-	} while(quit == false);
+	form_navigation(&form);
 	
+	/* TODO: Stuff here */
+
 	form_release(form);
-	curs_set(0); /* Remove the cursor */
 	return 0;
 }
 
@@ -177,10 +187,8 @@ static void
 register_user(void) {
 	FIELD *fields[5] = {0, 0, 0, 0, 0};
 	FORM  *form;
-	unsigned int i, ch;
-	bool quit = false;
+	unsigned int i;
 
-	curs_set(1); /* Print the cursor */
 	for (i = 0; i < 4; ++i) {
 		fields[i] = new_field(1, CRLS_MAXNAMELEN, 4 + i, 18, 0, 0);
 		field_opts_off(fields[i], O_AUTOSKIP);
@@ -193,50 +201,9 @@ register_user(void) {
 	form = new_form(fields);
 	post_form(form);
 	print_file("menus/register.txt");
-	move(4, 18); /* This is too arbitrary */
 	refresh();
 
-	do {
-		ch = getch();
-		switch(ch) {
-		case KEY_DOWN:
-		case '\t':
-			form_driver(form, REQ_NEXT_FIELD);
-			form_driver(form, REQ_END_LINE);
-			break;
-		case KEY_UP:
-			form_driver(form, REQ_PREV_FIELD);
-			form_driver(form, REQ_END_LINE);
-			break;
-		case KEY_RIGHT:
-			form_driver(form, REQ_NEXT_CHAR);
-			break;
-		case KEY_LEFT:
-			form_driver(form, REQ_PREV_CHAR);
-			break;
-		case KEY_DC:
-			form_driver(form, REQ_DEL_CHAR);
-			break;
-		case KEY_BACKSPACE:
-			form_driver(form, REQ_DEL_PREV);
-			break;
-		case KEY_HOME:
-			form_driver(form, REQ_BEG_FIELD);
-			break;
-		case KEY_END:
-			form_driver(form, REQ_END_FIELD);
-			break;
-		case KEY_ENTER:
-		case '\n':
-		case '\r':
-			form_driver(form, REQ_VALIDATION);
-			quit = true;		
-			break;
-		default:
-			form_driver(form, ch);
-			break;
-		}
-	} while (quit == false);
+	form_navigation(&form);
 
 	{
 		unsigned int i;
@@ -268,7 +235,6 @@ register_user(void) {
 	}
 	
 	form_release(form);
-	curs_set(0); /* Remove the cursor */
 }
 
 void
