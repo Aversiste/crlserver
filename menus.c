@@ -59,6 +59,19 @@ print_file(const char *path) {
 }
 
 static void
+form_release(FORM *form) {
+	FIELD **fields;
+	int i, fmax;
+
+	fields = form_fields(form);
+	fmax = field_count(form);
+	unpost_form(form);
+	free_form(form);
+	for (i = 0; i < fmax; ++i)
+		free_field(fields[i]);
+}
+
+static void
 games_menu(void) {
 	print_file("menus/games.txt");
 	getch();
@@ -95,7 +108,7 @@ server_info(void) {
 static int
 login_user(void) {
 	FIELD *fields[3] = {0, 0, 0};
-	FORM  *my_form;
+	FORM  *form;
 	unsigned int i, ch;
 	bool quit = false;
 
@@ -107,8 +120,8 @@ login_user(void) {
 	/* Protect the password */
 	field_opts_off(fields[1], O_PUBLIC);
 
-	my_form = new_form(fields);
-	post_form(my_form);
+	form = new_form(fields);
+	post_form(form);
 	print_file("menus/login.txt");
 	move(4, 18); /* This is too arbitrary */
 	refresh();
@@ -118,47 +131,44 @@ login_user(void) {
 		switch(ch) {
 		case KEY_DOWN:
 		case '\t':
-			form_driver(my_form, REQ_NEXT_FIELD);
-			form_driver(my_form, REQ_END_LINE);
+			form_driver(form, REQ_NEXT_FIELD);
+			form_driver(form, REQ_END_LINE);
 			break;
 		case KEY_UP:
-			form_driver(my_form, REQ_PREV_FIELD);
-			form_driver(my_form, REQ_END_LINE);
+			form_driver(form, REQ_PREV_FIELD);
+			form_driver(form, REQ_END_LINE);
 			break;
 		case KEY_RIGHT:
-			form_driver(my_form, REQ_NEXT_CHAR);
+			form_driver(form, REQ_NEXT_CHAR);
 			break;
 		case KEY_LEFT:
-			form_driver(my_form, REQ_PREV_CHAR);
+			form_driver(form, REQ_PREV_CHAR);
 			break;
 		case KEY_DC:
-			form_driver(my_form, REQ_DEL_CHAR);
+			form_driver(form, REQ_DEL_CHAR);
 			break;
 		case KEY_BACKSPACE:
-			form_driver(my_form, REQ_DEL_PREV);
+			form_driver(form, REQ_DEL_PREV);
 			break;
 		case KEY_HOME:
-			form_driver(my_form, REQ_BEG_FIELD);
+			form_driver(form, REQ_BEG_FIELD);
 			break;
 		case KEY_END:
-			form_driver(my_form, REQ_END_FIELD);
+			form_driver(form, REQ_END_FIELD);
 			break;
 		case KEY_ENTER:
 		case '\n':
 		case '\r':
-			form_driver(my_form, REQ_VALIDATION);
+			form_driver(form, REQ_VALIDATION);
 			quit = true;		
 			break;
 		default:
-			form_driver(my_form, ch);
+			form_driver(form, ch);
 			break;
 		}
 	} while(quit == false);
 	
-	unpost_form(my_form);
-	free_form(my_form);
-	free_field(fields[0]);
-	free_field(fields[1]);
+	form_release(form);
 	curs_set(0); /* Remove the cursor */
 	return 0;
 }
@@ -166,7 +176,7 @@ login_user(void) {
 static void
 register_user(void) {
 	FIELD *fields[5] = {0, 0, 0, 0, 0};
-	FORM  *my_form;
+	FORM  *form;
 	unsigned int i, ch;
 	bool quit = false;
 
@@ -180,8 +190,8 @@ register_user(void) {
 	for (i = 2; fields[i] != NULL; ++i)
 		field_opts_off(fields[i], O_PUBLIC);
 
-	my_form = new_form(fields);
-	post_form(my_form);
+	form = new_form(fields);
+	post_form(form);
 	print_file("menus/register.txt");
 	move(4, 18); /* This is too arbitrary */
 	refresh();
@@ -191,39 +201,39 @@ register_user(void) {
 		switch(ch) {
 		case KEY_DOWN:
 		case '\t':
-			form_driver(my_form, REQ_NEXT_FIELD);
-			form_driver(my_form, REQ_END_LINE);
+			form_driver(form, REQ_NEXT_FIELD);
+			form_driver(form, REQ_END_LINE);
 			break;
 		case KEY_UP:
-			form_driver(my_form, REQ_PREV_FIELD);
-			form_driver(my_form, REQ_END_LINE);
+			form_driver(form, REQ_PREV_FIELD);
+			form_driver(form, REQ_END_LINE);
 			break;
 		case KEY_RIGHT:
-			form_driver(my_form, REQ_NEXT_CHAR);
+			form_driver(form, REQ_NEXT_CHAR);
 			break;
 		case KEY_LEFT:
-			form_driver(my_form, REQ_PREV_CHAR);
+			form_driver(form, REQ_PREV_CHAR);
 			break;
 		case KEY_DC:
-			form_driver(my_form, REQ_DEL_CHAR);
+			form_driver(form, REQ_DEL_CHAR);
 			break;
 		case KEY_BACKSPACE:
-			form_driver(my_form, REQ_DEL_PREV);
+			form_driver(form, REQ_DEL_PREV);
 			break;
 		case KEY_HOME:
-			form_driver(my_form, REQ_BEG_FIELD);
+			form_driver(form, REQ_BEG_FIELD);
 			break;
 		case KEY_END:
-			form_driver(my_form, REQ_END_FIELD);
+			form_driver(form, REQ_END_FIELD);
 			break;
 		case KEY_ENTER:
 		case '\n':
 		case '\r':
-			form_driver(my_form, REQ_VALIDATION);
+			form_driver(form, REQ_VALIDATION);
 			quit = true;		
 			break;
 		default:
-			form_driver(my_form, ch);
+			form_driver(form, ch);
 			break;
 		}
 	} while (quit == false);
@@ -257,10 +267,7 @@ register_user(void) {
 		db_insert(vars[0], vars[1], vars[2]);
 	}
 	
-	unpost_form(my_form);
-	free_form(my_form);
-	for (i = 0; i < 4; ++i)
-		free_field(fields[i]);
+	form_release(form);
 	curs_set(0); /* Remove the cursor */
 }
 
