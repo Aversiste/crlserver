@@ -153,7 +153,7 @@ form_navigation(FORM **form) {
 			break;
 		}
 	} while(quit == false);
-	curs_set(1); /* Print the cursor */
+	curs_set(0); /* Remove the cursor */
 }
 
 /* Return 0 in case of a succesfull login or -1*/
