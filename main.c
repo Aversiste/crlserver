@@ -18,7 +18,7 @@
 #include <sysexits.h>
 
 #include "init.h"
-#include "menu.h"
+#include "menus.h"
 
 int
 main(void) {

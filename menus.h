@@ -20,9 +20,6 @@
 #ifndef MENU_H_
 #define MENU_H_
 
-typedef void (*callback)(void);
-
-void menu_tpl(size_t, void (*)(ITEM ***), void (*)(MENU **));
 void menu(void);
 
 #endif
