@@ -4,3 +4,5 @@
 
 Username:       [                    ]
 password:       [                    ]
+
+Cycle with TAB and validate with ENTER

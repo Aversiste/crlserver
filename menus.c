@@ -82,7 +82,8 @@ login_user(void) {
 	print_file("menus/login.txt");
 	refresh();
 
-	for (i = 0, ch = 0; quit == false; (ch = getch())) {
+	do {
+		ch = getch();
 		switch(ch) {
 		case KEY_DOWN:
 		case '\t':
@@ -121,14 +122,13 @@ login_user(void) {
 			form_driver(my_form, ch);
 			break;
 		}
-	}
+	} while(quit == false);
 	
 	unpost_form(my_form);
 	free_form(my_form);
 	free_field(fields[0]);
 	free_field(fields[1]);
 	curs_set(0); /* Remove the cursor */
-
 }
 
 static void
@@ -153,7 +153,8 @@ register_user(void) {
 	print_file("menus/register.txt");
 	refresh();
 
-	for (i = 0, ch = 0; quit == false; (ch = getch())) {
+	do {
+		ch = getch();
 		switch(ch) {
 		case KEY_DOWN:
 		case '\t':
@@ -192,7 +193,7 @@ register_user(void) {
 			form_driver(my_form, ch);
 			break;
 		}
-	}
+	} while (quit == false);
 
 	{
 		unsigned int i;

@@ -6,3 +6,5 @@ Username:       [                    ]
 e-mail:         [                    ]
 password:       [                    ]
 password (re):  [                    ]
+
+Cycle with TAB and validate with ENTER
