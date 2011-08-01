@@ -19,10 +19,11 @@
 #ifndef LOG_H__
 #define LOG_H__
 
-void clean_up(int eval, const char *fmt, ...);
-void clean_upx(int eval, const char *fmt, ...);
+void clean_up(int, const char *, ...);
+void clean_upx(int, const char *, ...);
 void fclean_up(const char *);
 
-void logmsg(const char *fmt, ...);
+void logmsg(const char *, ...);
+void scrmsg(int, int, const char *);
 
 #endif
