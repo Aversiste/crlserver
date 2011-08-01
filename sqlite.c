@@ -16,6 +16,7 @@
 
 #include <sys/types.h>
 #include <unistd.h>
+#include <curses.h>
 #include <stdlib.h>
 #include <sqlite3.h>
 
@@ -24,9 +25,17 @@
 #include "log.h"
 
 static int
-sqlite_cmd(char *query) {
+user_exist_callback() {
+	mvaddstr(14, 1, "This account already exists.");
+	refresh();
+	sleep(2);
+	return 1;
+}
+
+static int
+sqlite_cmd(char *query, int (*callback)(void *, int, char **, char **), void *fp) {
 	sqlite3 *db;
-	char *err;
+	char *errmsg;
 	int ret;
 	
 	/* XXX: It can be usefull to see why we can't open,
@@ -37,12 +46,15 @@ sqlite_cmd(char *query) {
 	}
 
 	(void)sqlite3_busy_timeout(db, 10000);
-	ret = sqlite3_exec(db, query, NULL, NULL, &err);
+	ret = sqlite3_exec(db, query, callback, fp, &errmsg);
 
 	sqlite3_free(query);
 	sqlite3_close(db);
-	if (ret != SQLITE_OK)
+	if (ret != SQLITE_OK) {
+		logmsg("Error %i: %s", ret, errmsg);
+		sqlite3_free(errmsg);
 		return ret;
+	}
 	return 0;
 }
 
@@ -57,8 +69,7 @@ sqlite_init(void) {
 	if (query == NULL)
 		clean_up(1, "sqlite_init");
 
-	sqlite_cmd(query);
-	logmsg("sqlite_init done !\n");
+	sqlite_cmd(query, NULL, NULL);
 }
 
 void
@@ -72,7 +83,7 @@ sqlite_insert(const char *name, const char *email, const char *password) {
 	if (query == NULL)
 		clean_up(1, "sqlite_insert");
 
-	sqlite_cmd(query);
+	sqlite_cmd(query, NULL, NULL);
 }
 
 void
@@ -85,21 +96,17 @@ sqlite_update(unsigned int id, const char *name, const char *email, const char *
 	if (query == NULL)
 		clean_up(1, "sqlite_update");
 
-	sqlite_cmd(query);
+	sqlite_cmd(query, NULL, NULL);
 }
 
 int
 do_user_exist(const char *name) {
-	int ret;
 	char *query = sqlite3_mprintf("SELECT * FROM users \
-		WHERE name=\"%i\";", name);
+		WHERE name LIKE \"%s\" LIMIT 1;", name);
 
 	logmsg("do_user_exists %s\n", name);
 	if (query == NULL)
 		clean_up(1, "sqlite_update");
 
-	ret = sqlite_cmd(query);
-	if (ret != 0)
-		logmsg("Hum ... this is the error code : %i\n", ret);
-	return ret;
+	return sqlite_cmd(query, &user_exist_callback, NULL);
 }
