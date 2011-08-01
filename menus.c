@@ -199,14 +199,14 @@ sanitize(const FORM *form) {
 
 		s = field_buffer(fields[i], 0);
 		if (s == NULL) {
-			logmsg("A field is really to small\n");
+			scrmsg(14, 1, "A field is missing\n");
 			return -1;
 		}
 		c = strchr(s, ' ');
 		if (c != NULL)
 			*c = '\0';
 		if (strlen(s) < 1) {
-			logmsg("A field is really to small\n");
+			scrmsg(14, 1, "A field is missing\n");
 			return -1;
 		}
 	}
@@ -215,7 +215,7 @@ sanitize(const FORM *form) {
 	pass2 = field_buffer(fields[3], 0);
 	pass_size = strlen(pass);
 	if (strncmp(pass, pass2, pass_size) != 0) {
-		logmsg("Password are not equal\n");
+		scrmsg(14, 1, "Passwords are not equal !");
 		return -1;
 	}
 
