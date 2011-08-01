@@ -92,3 +92,10 @@ logmsg(const char *fmt, ...) {
 	va_end(ap);
 	(void)fclose(fd);
 }
+
+void
+scrmsg(int y, int x, const char *msg) {
+	mvaddstr(y, x, msg);
+	refresh();
+	sleep(2);
+}
