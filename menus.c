@@ -203,8 +203,6 @@ login_menu(void) {
 	return 0;
 }
 
-
-
 static void
 register_menu(void) {
 	FIELD *fields[5] = {0, 0, 0, 0, 0};
