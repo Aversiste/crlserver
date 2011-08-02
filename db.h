@@ -22,12 +22,14 @@
 # define db_init   sqlite_init
 # define db_insert sqlite_insert
 # define db_update sqlite_update
+# define db_check_user sqlite_check_user
 
 # define RL_SQLITE_DB "/tmp/crlserver.db"
 void sqlite_init(void);
 void sqlite_insert(const char *, const char *, const char *);
 void sqlite_update(unsigned int, const char *, const char *, const char *);
-void do_user_exist(const char *);
+int do_user_exist(const char *);
+int sqlite_check_user(const char *, char *);
 
 #endif /* SQLITE_FLAVOR */
 

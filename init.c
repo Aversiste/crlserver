@@ -27,7 +27,7 @@
 
 void
 init(void) {
-	sqlite_init();
+	db_init();
 
 	initscr();
 	if (has_colors() == TRUE)

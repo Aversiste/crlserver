@@ -59,6 +59,19 @@ print_file(const char *path) {
 }
 
 static void
+form_release(FORM *form) {
+	FIELD **fields;
+	int i, fmax;
+
+	fields = form_fields(form);
+	fmax = field_count(form);
+	unpost_form(form);
+	free_form(form);
+	for (i = 0; i < fmax; ++i)
+		free_field(fields[i]);
+}
+
+static void
 games_menu(void) {
 	print_file("menus/games.txt");
 	getch();
@@ -85,21 +98,91 @@ user_menu(void) {
 	getch();
 }
 
-static void
+__inline void
 server_info(void) {
 	print_file("menus/server_info.txt");
 	getch();
 }
 
-/* Return 0 in case of a succesfull login or -1*/
-static int
-login_user(void) {
-	FIELD *fields[3] = {0, 0, 0};
-	FORM  *my_form;
-	unsigned int i, ch;
+static void
+form_navigation(FORM **form) {
 	bool quit = false;
+	unsigned int ch = 0;
 
 	curs_set(1); /* Print the cursor */
+	move(4, 18); /* This is too arbitrary */
+	do {
+		ch = getch();
+		switch(ch) {
+		case KEY_DOWN:
+		case '\t':
+			form_driver(*form, REQ_NEXT_FIELD);
+			form_driver(*form, REQ_END_LINE);
+			break;
+		case KEY_UP:
+			form_driver(*form, REQ_PREV_FIELD);
+			form_driver(*form, REQ_END_LINE);
+			break;
+		case KEY_RIGHT:
+			form_driver(*form, REQ_NEXT_CHAR);
+			break;
+		case KEY_LEFT:
+			form_driver(*form, REQ_PREV_CHAR);
+			break;
+		case KEY_DC:
+			form_driver(*form, REQ_DEL_CHAR);
+			break;
+		case KEY_BACKSPACE:
+		case 127:
+			form_driver(*form, REQ_DEL_PREV);
+			break;
+		case KEY_HOME:
+			form_driver(*form, REQ_BEG_FIELD);
+			break;
+		case KEY_END:
+			form_driver(*form, REQ_END_FIELD);
+			break;
+		case KEY_ENTER:
+		case '\n':
+		case '\r':
+			form_driver(*form, REQ_VALIDATION);
+			quit = true;		
+			break;
+		default:
+			form_driver(*form, ch);
+			break;
+		}
+	} while(quit == false);
+	curs_set(0); /* Remove the cursor */
+}
+
+static char *
+field_sanitize(const FIELD *field) {
+	char *c, *s;
+
+	s = field_buffer(field, 0);
+	if (s == NULL) {
+		scrmsg(14, 1, "A field is missing\n");
+		return NULL;
+	}
+	c = strchr(s, ' ');
+	if (c != NULL)
+		*c = '\0';
+	if (strlen(s) < 1) {
+		scrmsg(14, 1, "A field is missing\n");
+		return NULL;
+	}
+	return s;
+}
+
+/* Return 0 in case of a succesfull login or -1*/
+static int
+login_menu(void) {
+	FIELD *fields[3] = {0, 0, 0};
+	FORM  *form;
+	unsigned int i;
+	char *user, *pass;
+
 	for (i = 0; i < 2; ++i) {
 		fields[i] = new_field(1, CRLS_MAXNAMELEN, 4 + i, 18, 0, 0);
 		field_opts_off(fields[i], O_AUTOSKIP);
@@ -107,70 +190,37 @@ login_user(void) {
 	/* Protect the password */
 	field_opts_off(fields[1], O_PUBLIC);
 
-	my_form = new_form(fields);
-	post_form(my_form);
+	form = new_form(fields);
+	post_form(form);
 	print_file("menus/login.txt");
-	move(4, 18); /* This is too arbitrary */
 	refresh();
 
-	do {
-		ch = getch();
-		switch(ch) {
-		case KEY_DOWN:
-		case '\t':
-			form_driver(my_form, REQ_NEXT_FIELD);
-			form_driver(my_form, REQ_END_LINE);
-			break;
-		case KEY_UP:
-			form_driver(my_form, REQ_PREV_FIELD);
-			form_driver(my_form, REQ_END_LINE);
-			break;
-		case KEY_RIGHT:
-			form_driver(my_form, REQ_NEXT_CHAR);
-			break;
-		case KEY_LEFT:
-			form_driver(my_form, REQ_PREV_CHAR);
-			break;
-		case KEY_DC:
-			form_driver(my_form, REQ_DEL_CHAR);
-			break;
-		case KEY_BACKSPACE:
-			form_driver(my_form, REQ_DEL_PREV);
-			break;
-		case KEY_HOME:
-			form_driver(my_form, REQ_BEG_FIELD);
-			break;
-		case KEY_END:
-			form_driver(my_form, REQ_END_FIELD);
-			break;
-		case KEY_ENTER:
-		case '\n':
-		case '\r':
-			form_driver(my_form, REQ_VALIDATION);
-			quit = true;		
-			break;
-		default:
-			form_driver(my_form, ch);
-			break;
-		}
-	} while(quit == false);
-	
-	unpost_form(my_form);
-	free_form(my_form);
-	free_field(fields[0]);
-	free_field(fields[1]);
-	curs_set(0); /* Remove the cursor */
+	form_navigation(&form);
+	user = field_sanitize(fields[0]);
+	pass = field_sanitize(fields[1]);
+
+	if (user == NULL || pass == NULL) {
+		form_release(form);
+		return -1;
+	}
+
+	if (db_check_user(user, pass) != 0) {
+		form_release(form);
+		return -1;
+	}
+
+	user_menu();
 	return 0;
 }
 
 static void
-register_user(void) {
+register_menu(void) {
 	FIELD *fields[5] = {0, 0, 0, 0, 0};
-	FORM  *my_form;
-	unsigned int i, ch;
-	bool quit = false;
+	FORM  *form;
+	unsigned int i;
+	char *user, *email, *pass, *pass2;
+	size_t pass_size;
 
-	curs_set(1); /* Print the cursor */
 	for (i = 0; i < 4; ++i) {
 		fields[i] = new_field(1, CRLS_MAXNAMELEN, 4 + i, 18, 0, 0);
 		field_opts_off(fields[i], O_AUTOSKIP);
@@ -180,88 +230,37 @@ register_user(void) {
 	for (i = 2; fields[i] != NULL; ++i)
 		field_opts_off(fields[i], O_PUBLIC);
 
-	my_form = new_form(fields);
-	post_form(my_form);
+	form = new_form(fields);
+	post_form(form);
 	print_file("menus/register.txt");
-	move(4, 18); /* This is too arbitrary */
 	refresh();
 
-	do {
-		ch = getch();
-		switch(ch) {
-		case KEY_DOWN:
-		case '\t':
-			form_driver(my_form, REQ_NEXT_FIELD);
-			form_driver(my_form, REQ_END_LINE);
-			break;
-		case KEY_UP:
-			form_driver(my_form, REQ_PREV_FIELD);
-			form_driver(my_form, REQ_END_LINE);
-			break;
-		case KEY_RIGHT:
-			form_driver(my_form, REQ_NEXT_CHAR);
-			break;
-		case KEY_LEFT:
-			form_driver(my_form, REQ_PREV_CHAR);
-			break;
-		case KEY_DC:
-			form_driver(my_form, REQ_DEL_CHAR);
-			break;
-		case KEY_BACKSPACE:
-			form_driver(my_form, REQ_DEL_PREV);
-			break;
-		case KEY_HOME:
-			form_driver(my_form, REQ_BEG_FIELD);
-			break;
-		case KEY_END:
-			form_driver(my_form, REQ_END_FIELD);
-			break;
-		case KEY_ENTER:
-		case '\n':
-		case '\r':
-			form_driver(my_form, REQ_VALIDATION);
-			quit = true;		
-			break;
-		default:
-			form_driver(my_form, ch);
-			break;
-		}
-	} while (quit == false);
-
-	{
-		unsigned int i;
-		char *vars[4] = {0, 0, 0, 0};
-		size_t pass_size;
-
-		vars[0] = field_buffer(fields[0], 0);
-		vars[1] = field_buffer(fields[1], 0);
-		vars[2] = field_buffer(fields[2], 0);
-		vars[3] = field_buffer(fields[3], 0);
-
-		for (i = 0; i < 4; ++i) {
-			char *c = strchr(vars[i], ' ');
-			if (c != NULL)
-				*c = '\0';
-			if (strlen(vars[i]) < 1) {
-				logmsg("A field is really to small\n");
-				return;
-			}
-		}
-		pass_size = strlen(vars[2]);
-
-		if (strncmp(vars[2], vars[3], pass_size) != 0) {
-			logmsg("Password are not equal\n");
-			return;
-		}
-		do_user_exist(vars[0]);
-		db_insert(vars[0], vars[1], vars[2]);
-	}
+	form_navigation(&form);
 	
-	unpost_form(my_form);
-	free_form(my_form);
-	for (i = 0; i < 4; ++i)
-		free_field(fields[i]);
-	curs_set(0); /* Remove the cursor */
+	/* Get the input with trimed whitespaces */
+	user = field_sanitize(fields[0]);
+	email = field_sanitize(fields[1]);
+	pass = field_sanitize(fields[2]);
+	pass2 = field_sanitize(fields[3]);
+
+	if (user == NULL || email == NULL || pass == NULL || pass2 == NULL)
+		goto clean;
+	pass_size = strlen(pass);
+	if (strchr(email, '@') == NULL) {
+		scrmsg(14, 1, "Put a valid email please.");
+		goto clean;
+	}
+	if (strncmp(pass, pass2, pass_size) != 0) {
+		scrmsg(14, 1, "Passwords don't match!");
+		goto clean;
+	}
+
+	/* This function actually print is own error message */
+	if (do_user_exist(user) == 0)
+		db_insert(user, email, pass); /* TODO: Salt + MD5/SHA1/Whatever */
+
+clean:
+	form_release(form);
 }
 
 void
@@ -270,30 +269,27 @@ menus(void) {
 
 	do {
 		switch (c) {
-		case 'l':
-		case 'L':
-			if (login_user() == 0)
-				user_menu();
-			else {
-				mvaddstr(14, 1, "Error");
-				sleep(1);
-			}
-			break;
-		case 'r':
-		case 'R':
-			register_user();
-			break;
-		case 's':
-		case 'S':
-			server_info();
-			(void)refresh();
-			break;
-		case 'q':
-		case 'Q':
-			fclean_up("Good Bye");
-			break;
-		default:
-			break;
+			case 'l':
+			case 'L':
+				if (login_menu() != 0) {
+					mvaddstr(14, 1, "Error");
+					sleep(1);
+				}
+				break;
+			case 'r':
+			case 'R':
+				register_menu();
+				break;
+			case 's':
+			case 'S':
+				server_info();
+				break;
+			case 'q':
+			case 'Q':
+				fclean_up("Good Bye");
+				break;
+			default:
+				break;
 		}
 		print_file("menus/general.txt");
 	} while ((c = getch()) != 'q');
