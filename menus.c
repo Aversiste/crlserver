@@ -199,10 +199,17 @@ login_menu(void) {
 	user = field_sanitize(fields[0]);
 	pass = field_sanitize(fields[1]);
 
-	form_release(form);
-	if (user != NULL && pass != NULL)
-		user_menu();
+	if (user == NULL || pass == NULL) {
+		form_release(form);
+		return -1;
+	}
 
+	if (db_check_user(user, pass) != 0) {
+		form_release(form);
+		return -1;
+	}
+
+	user_menu();
 	return 0;
 }
 
@@ -244,7 +251,7 @@ register_menu(void) {
 		goto clean;
 	}
 	if (strncmp(pass, pass2, pass_size) != 0) {
-		scrmsg(14, 1, "Passwords are not equal !");
+		scrmsg(14, 1, "Passwords don't match!");
 		goto clean;
 	}
 
