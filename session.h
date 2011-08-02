@@ -18,9 +18,7 @@
 #define SESSION_H__
 
 struct session {
-	unsigned int id;
-	char *user;
-	char *editor;
+	int logged;
 };
 
 #endif

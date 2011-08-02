@@ -209,6 +209,12 @@ login_menu(void) {
 		return -1;
 	}
 
+	/* This flag is set by db_check_user */
+	if (session.logged == 0) {
+		scrmsg(14, 1, "No match");
+		return -1;
+	}
+
 	user_menu();
 	return 0;
 }

@@ -20,6 +20,7 @@
 #include <sqlite3.h>
 #include <unistd.h>
 
+#include "crlserver.h"
 #include "db.h"
 #include "init.h"
 #include "log.h"
@@ -45,6 +46,8 @@ check_user_callback(void *pass, int argc, char **argv, char **colname) {
 		scrmsg(14, 1, "No match");
 		return -1;
 	}
+
+	session.logged = 1;
 	return 0;
 }
 

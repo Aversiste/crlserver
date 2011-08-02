@@ -24,6 +24,9 @@
 #include "db.h"
 #include "init.h"
 #include "log.h"
+#include "session.h"
+
+struct session session;
 
 void
 init(void) {
@@ -38,6 +41,8 @@ init(void) {
 
 	if ((LINES < DROWS) || (COLS < DCOLS))
 		fclean_up("must be displayed on 24 x 80 screen (or larger)");
+
+	session.logged = 0;
 }
 
 void
