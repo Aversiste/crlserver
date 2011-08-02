@@ -34,6 +34,7 @@ struct list {
 	char *lname;
 	char *version;
 	char *desc;
+	char *key;
 	char *path;
 	char *params;
 	char *env;

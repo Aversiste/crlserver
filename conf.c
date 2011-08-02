@@ -73,6 +73,8 @@ parse(FILE *fd) {
 			l->params = strdup(value);
 		else if (strncmp("env", key, 3) == 0 && value != NULL)
 			l->env = strdup(value);
+		else if (strncmp("key", key, 3) == 0 && value != NULL)
+			l->key = strdup(value);
 		free(b);
 	}
 	return l;

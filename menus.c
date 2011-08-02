@@ -72,7 +72,7 @@ form_release(FORM *form) {
 }
 
 static void
-games_menu(void) {
+games_menu(games_list *glp) {
 	print_file("menus/games.txt");
 	getch();
 }
@@ -81,22 +81,32 @@ static void
 user_menu(void) {
 	size_t	gl_length;
 	games_list_head gl_head = SLIST_HEAD_INITIALIZER(gl_head);
-	games_list *glp;
+	games_list *glp, *glsave = NULL;
 	unsigned int i = 5;
+	int ch = 0;
 
 	load_folder(GAMES_DIR, &gl_head);
 	gl_length = list_size((struct list_head*)&gl_head);
 
 	print_file("menus/banner.txt");
 	SLIST_FOREACH(glp, &gl_head, ls) {
-		mvprintw(i, 1, "%i) %s - %s (%s)", i - 4, glp->name,
-			glp->lname, glp->version);
+		mvprintw(i, 1, "%s) %s - %s (%s)", glp->key, glp->name,
+				glp->lname, glp->version);
 		++i;
 	}
 	refresh();
-	getch();
-	games_menu();
-	getch();
+
+	do {
+		ch = getch();
+		SLIST_FOREACH(glp, &gl_head, ls) {
+			if (ch == glp->key[0]) {
+				glsave = glp;
+				break;
+			}
+		}
+	} while (glsave == NULL);
+
+	games_menu(glsave);
 }
 
 __inline void
