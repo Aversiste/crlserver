@@ -15,10 +15,10 @@
  */
 
 #include <sys/types.h>
-#include <unistd.h>
-#include <curses.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sqlite3.h>
+#include <unistd.h>
 
 #include "db.h"
 #include "init.h"
@@ -26,10 +26,26 @@
 
 static int
 user_exist_callback() {
-	mvaddstr(14, 1, "This account already exists.");
-	refresh();
-	sleep(2);
-	return 1;
+	scrmsg(14, 1, "This account already exists.");
+	return -1;
+}
+
+static int
+check_user_callback(void *pass, int argc, char **argv, char **colname) {
+	char *bpass = NULL;
+	colname = NULL;
+
+	if (argc != 2)
+		return -1;
+
+	bpass = argv[1];
+	if (bpass == NULL ||
+	    strncmp(pass, bpass, strlen(pass)) != 0 ||
+	    strlen(bpass) != strlen(pass)) {
+		scrmsg(14, 1, "No match");
+		return -1;
+	}
+	return 0;
 }
 
 static int
@@ -46,12 +62,13 @@ sqlite_cmd(char *query, int (*callback)(void *, int, char **, char **), void *fp
 	}
 
 	(void)sqlite3_busy_timeout(db, 10000);
+	(void)sqlite3_extended_result_codes(db, 1);
 	ret = sqlite3_exec(db, query, callback, fp, &errmsg);
 
 	sqlite3_free(query);
 	sqlite3_close(db);
 	if (ret != SQLITE_OK) {
-		logmsg("Error %i: %s", ret, errmsg);
+		logmsg("Error %i: %s\n", ret, errmsg);
 		sqlite3_free(errmsg);
 		return ret;
 	}
@@ -79,7 +96,6 @@ sqlite_insert(const char *name, const char *email, const char *password) {
 		 ('%q', '%q', '%q');", name, email, password);
 
 	logmsg("sqlite_insert %s %s %s\n", name, email, password);
-	/* XXX: Check that the nick doesn'h already exist*/
 	if (query == NULL)
 		clean_up(1, "sqlite_insert");
 
@@ -106,7 +122,21 @@ do_user_exist(const char *name) {
 
 	logmsg("do_user_exists %s\n", name);
 	if (query == NULL)
-		clean_up(1, "sqlite_update");
+		clean_up(1, "do_user_exist");
 
 	return sqlite_cmd(query, &user_exist_callback, NULL);
+}
+
+int
+sqlite_check_user(const char *name, char *pass) {
+	char *query = sqlite3_mprintf("SELECT name, password FROM users \
+		WHERE name LIKE \"%s\" LIMIT 1;", name);
+	int ret = 0;
+
+	logmsg("sqlite_check_user %s\n", name);
+	if (query == NULL)
+		clean_up(1, "sqlite_check_user");
+
+	ret = sqlite_cmd(query, &check_user_callback, pass);
+	return ret;
 }
