@@ -181,6 +181,7 @@ login_menu(void) {
 	FIELD *fields[3] = {0, 0, 0};
 	FORM  *form;
 	unsigned int i;
+	char *user, *pass;
 
 	for (i = 0; i < 2; ++i) {
 		fields[i] = new_field(1, CRLS_MAXNAMELEN, 4 + i, 18, 0, 0);
@@ -195,11 +196,13 @@ login_menu(void) {
 	refresh();
 
 	form_navigation(&form);
-
-	/* TODO: Stuff here */
+	user = field_sanitize(fields[0]);
+	pass = field_sanitize(fields[1]);
 
 	form_release(form);
-	user_menu();
+	if (user != NULL && pass != NULL)
+		user_menu();
+
 	return 0;
 }
 
@@ -232,20 +235,24 @@ register_menu(void) {
 	email = field_sanitize(fields[1]);
 	pass = field_sanitize(fields[2]);
 	pass2 = field_sanitize(fields[3]);
+
+	if (user == NULL || email == NULL || pass == NULL || pass2 == NULL)
+		goto clean;
 	pass_size = strlen(pass);
 	if (strchr(email, '@') == NULL) {
 		scrmsg(14, 1, "Put a valid email please.");
-		return;
+		goto clean;
 	}
 	if (strncmp(pass, pass2, pass_size) != 0) {
 		scrmsg(14, 1, "Passwords are not equal !");
-		return;
+		goto clean;
 	}
 
 	/* This function actually print is own error message */
 	if (do_user_exist(user) == 0)
 		db_insert(user, email, pass); /* TODO: Salt + MD5/SHA1/Whatever */
 
+clean:
 	form_release(form);
 }
 
