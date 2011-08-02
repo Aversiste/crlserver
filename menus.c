@@ -89,7 +89,8 @@ user_menu(void) {
 
 	print_file("menus/banner.txt");
 	SLIST_FOREACH(glp, &gl_head, ls) {
-		mvprintw(i, 1, "%i) %s - %s (%s)", i - 4, glp->name, glp->lname, glp->version);
+		mvprintw(i, 1, "%i) %s - %s (%s)", i - 4, glp->name,
+			glp->lname, glp->version);
 		++i;
 	}
 	refresh();
