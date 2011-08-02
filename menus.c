@@ -156,6 +156,25 @@ form_navigation(FORM **form) {
 	curs_set(0); /* Remove the cursor */
 }
 
+static char *
+field_sanitize(const FIELD *field) {
+	char *c, *s;
+
+	s = field_buffer(field, 0);
+	if (s == NULL) {
+		scrmsg(14, 1, "A field is missing\n");
+		return NULL;
+	}
+	c = strchr(s, ' ');
+	if (c != NULL)
+		*c = '\0';
+	if (strlen(s) < 1) {
+		scrmsg(14, 1, "A field is missing\n");
+		return NULL;
+	}
+	return s;
+}
+
 /* Return 0 in case of a succesfull login or -1*/
 static int
 login_menu(void) {
@@ -184,53 +203,15 @@ login_menu(void) {
 	return 0;
 }
 
-/* XXX: This function is ugly */
-static int
-sanitize(const FORM *form) {
-	FIELD **fields;
-	size_t pass_size;
-	char *pass, *pass2;
-	unsigned int i, fmax;
-	
-	fields = form_fields(form);
-	fmax = field_count(form);
-	for (i = 0; i < fmax; ++i) {
-		char *c, *s;
 
-		s = field_buffer(fields[i], 0);
-		if (s == NULL) {
-			scrmsg(14, 1, "A field is missing\n");
-			return -1;
-		}
-		c = strchr(s, ' ');
-		if (c != NULL)
-			*c = '\0';
-		if (strlen(s) < 1) {
-			scrmsg(14, 1, "A field is missing\n");
-			return -1;
-		}
-	}
-
-	pass = field_buffer(fields[2], 0);
-	pass2 = field_buffer(fields[3], 0);
-	pass_size = strlen(pass);
-	if (strncmp(pass, pass2, pass_size) != 0) {
-		scrmsg(14, 1, "Passwords are not equal !");
-		return -1;
-	}
-
-	if (do_user_exist(field_buffer(fields[0], 0)) != 0)
-		return -1;
-
-	db_insert(field_buffer(fields[0], 0), field_buffer(fields[1], 0), field_buffer(fields[2], 0));
-	return 0;
-}
 
 static void
 register_menu(void) {
 	FIELD *fields[5] = {0, 0, 0, 0, 0};
 	FORM  *form;
 	unsigned int i;
+	char *user, *email, *pass, *pass2;
+	size_t pass_size;
 
 	for (i = 0; i < 4; ++i) {
 		fields[i] = new_field(1, CRLS_MAXNAMELEN, 4 + i, 18, 0, 0);
@@ -247,8 +228,26 @@ register_menu(void) {
 	refresh();
 
 	form_navigation(&form);
+	
+	/* Get the input with trimed whitespaces */
+	user = field_sanitize(fields[0]);
+	email = field_sanitize(fields[1]);
+	pass = field_sanitize(fields[2]);
+	pass2 = field_sanitize(fields[3]);
+	pass_size = strlen(pass);
+	if (strchr(email, '@') == NULL) {
+		scrmsg(14, 1, "Put a valid email please.");
+		return;
+	}
+	if (strncmp(pass, pass2, pass_size) != 0) {
+		scrmsg(14, 1, "Passwords are not equal !");
+		return;
+	}
 
-	sanitize(form);
+	/* This function actually print is own error message */
+	if (do_user_exist(user) == 0)
+		db_insert(user, email, pass); /* TODO: Salt + MD5/SHA1/Whatever */
+
 	form_release(form);
 }
 
