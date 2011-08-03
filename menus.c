@@ -265,7 +265,7 @@ login_menu(void) {
 		return -1;
 	}
 
-	if (db_check_user(user, pass) != 0) {
+	if (db_check_user(user, crypt(pass, "$1")) != 0) {
 		form_release(form);
 		return -1;
 	}
@@ -341,7 +341,7 @@ register_menu(void) {
 
 	/* This function actually print is own error message */
 	if (do_user_exist(user) == 0)
-		db_insert(user, email, pass); /* TODO: Salt + MD5/SHA1/Whatever */
+		db_insert(user, email, crypt(pass, "$1"));
 
 clean:
 	form_release(form);
