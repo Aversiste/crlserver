@@ -330,7 +330,7 @@ register_menu(void) {
 	}
 	for (i = 0; user[i] != '\0'; ++i) {
 		if (isascii(user[i]) == 0) {
-			scrmsg(14, 1, "Only ascii in inputs fields");
+			scrmsg(14, 1, "Only ascii in the username");
 			goto clean;
 		}
 		if (user[i] == ':') {
