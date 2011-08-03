@@ -23,7 +23,7 @@
 #include <sys/queue.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <ctypes.h>
+#include <ctype.h>
 #include <curses.h>
 #include <err.h>
 #include <form.h>
