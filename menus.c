@@ -108,7 +108,7 @@ games_menu(games_list *glp) {
 					/* child */
 					execve(glp->path, argv, environ);
 					logmsg("execve error\n");
-					exit(2);
+					clean_up(1, "execve error");
 				}
 				else /* parent */
 					waitpid(pid, &status, 0);
