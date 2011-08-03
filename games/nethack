@@ -3,6 +3,6 @@ longname=Nethack
 version=3.4.3
 description=Bla bla
 key=n
-path=/usr/local/bin/nethack-3.4.3
+path=/usr/games/nethack
 params=-u %user%
 env=
