@@ -23,6 +23,7 @@
 #include <sys/queue.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <ctypes.h>
 #include <curses.h>
 #include <err.h>
 #include <form.h>
@@ -322,6 +323,20 @@ register_menu(void) {
 	if (strncmp(pass, pass2, pass_size) != 0) {
 		scrmsg(14, 1, "Passwords don't match!");
 		goto clean;
+	}
+	if (isalnum(*user) == 0) {
+		scrmsg(14, 1, "Only alphanumerics caracteres are allowed for the first letter.");
+		goto clean;
+	}
+	for (i = 0; user[i] != '\0'; ++i) {
+		if (isascii(user[i]) == 0) {
+			scrmsg(14, 1, "Only ascii in inputs fields");
+			goto clean;
+		}
+		if (user[i] == ':') {
+			scrmsg(14, 1, "':' caractere is forbid");
+			goto clean;
+		}
 	}
 
 	/* This function actually print is own error message */
