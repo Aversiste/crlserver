@@ -19,6 +19,7 @@
 
 struct session {
 	int logged;
+	char *name;
 };
 
 #endif

@@ -4,5 +4,5 @@ version=1.0.3
 description=last edit Tue Jul 23 1985
 key=h
 path=/usr/games/hack
-params=
+params=-u %user%
 env=

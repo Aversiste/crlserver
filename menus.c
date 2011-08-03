@@ -21,6 +21,8 @@
 #endif
 
 #include <sys/queue.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include <curses.h>
 #include <err.h>
 #include <form.h>
@@ -35,6 +37,7 @@
 #include "log.h"
 #include "menus.h"
 #include "pathnames.h"
+#include "session.h"
 
 #define CRLS_MAXNAMELEN 20
 
@@ -71,42 +74,88 @@ form_release(FORM *form) {
 		free_field(fields[i]);
 }
 
+extern char **environ;
+
 static void
 games_menu(games_list *glp) {
-	print_file("menus/games.txt");
-	getch();
+	int ch = 0;
+	int status;
+	pid_t pid;
+	char **ap, *argv[10];
+
+	argv[0] = glp->path;
+	for (ap = &argv[1]; ap < &argv[9] &&
+			(*ap = strsep(&glp->params, " \t")) != NULL;) {
+		if (strchr(*ap, '%') != NULL)
+			*ap = session.name;
+		if (**ap != '\0')
+			ap++;
+	}
+	*ap = NULL;
+
+	do {
+		switch (ch) {
+			case 'p':
+			case 'P':
+				clear();
+				refresh();
+				endwin();
+				pid = fork();
+				if (pid < 0)
+					clean_up(1, "fork");
+				else if (pid == 0) {
+					/* child */
+					execve(glp->path, argv, environ);
+					logmsg("execve error\n");
+					exit(2);
+				}
+				else /* parent */
+					waitpid(pid, &status, 0);
+				break;
+			case 'e':
+			case 'E':
+				scrmsg(14, 1, "Edit");
+				break;
+			default:
+				break;
+		}
+		print_file("menus/games.txt");
+	} while ((ch = getch()) != 'q');
 }
 
 static void
 user_menu(void) {
 	size_t	gl_length;
 	games_list_head gl_head = SLIST_HEAD_INITIALIZER(gl_head);
-	games_list *glp, *glsave = NULL;
-	unsigned int i = 5;
-	int ch = 0;
+	games_list *glp;
+	int i, ch = 0;
 
 	load_folder(GAMES_DIR, &gl_head);
 	gl_length = list_size((struct list_head*)&gl_head);
 
-	print_file("menus/banner.txt");
-	SLIST_FOREACH(glp, &gl_head, ls) {
-		mvprintw(i, 1, "%s) %s - %s (%s)", glp->key, glp->name,
-				glp->lname, glp->version);
-		++i;
-	}
-	refresh();
-
 	do {
+		i = 6;
+		print_file("menus/banner.txt");
+		SLIST_FOREACH(glp, &gl_head, ls) {
+			mvprintw(i, 1, "%s) %s - %s (%s)", glp->key, glp->name,
+					glp->lname, glp->version);
+			++i;
+		}
+		mvaddstr(4, 1, "q) Quit");
+		refresh();
 		ch = getch();
+		if (ch == 'q')
+			break;
 		SLIST_FOREACH(glp, &gl_head, ls) {
 			if (ch == glp->key[0]) {
-				glsave = glp;
+				games_menu(glp);
 				break;
 			}
 		}
-	} while (glsave == NULL);
-
-	games_menu(glsave);
+	} while (1);
+	list_release(&gl_head);
+	free(session.name);
+	session.logged = 0;
 }
 
 __inline void
@@ -223,9 +272,12 @@ login_menu(void) {
 	/* This flag is set by db_check_user */
 	if (session.logged == 0) {
 		scrmsg(14, 1, "No match");
+		form_release(form);
 		return -1;
 	}
 
+	session.name = strdup(user);
+	form_release(form);
 	user_menu();
 	return 0;
 }
