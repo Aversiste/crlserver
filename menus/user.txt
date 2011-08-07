@@ -1,0 +1,7 @@
+#
+# the C Roguelikes games Server
+#
+
+q) Quit
+e) Change email address
+p) Change password

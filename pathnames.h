@@ -20,5 +20,6 @@
 #define GAMES_DIR "games"
 #define EDITORS_DIR "editors"
 #define LOG_FILE "/tmp/crlserver.log"
+#define CRLSERVER_PLAYGROUND "/tmp/crlserver/"
 
 #endif
