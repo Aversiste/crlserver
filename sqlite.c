@@ -59,7 +59,7 @@ sqlite_cmd(char *query, int (*callback)(void *, int, char **, char **), void *fp
 	
 	/* XXX: It can be usefull to see why we can't open,
 		rather than exiting */
-	if (sqlite3_open(RL_SQLITE_DB, &db) != SQLITE_OK) {
+	if (sqlite3_open(CRLSERVER_SQLITE_DB, &db) != SQLITE_OK) {
 		sqlite3_free(query);
 		clean_up(1, "sqlite3_init");
 	}

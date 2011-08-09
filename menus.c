@@ -133,7 +133,7 @@ user_menu(void) {
 	games_list *glp;
 	int i, ch = 0;
 
-	load_folder(GAMES_DIR, &gl_head);
+	load_folder(CRLSERVER_GAMES_DIR, &gl_head);
 	gl_length = list_size((struct list_head*)&gl_head);
 
 	do {
