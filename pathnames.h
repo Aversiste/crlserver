@@ -17,8 +17,9 @@
 #ifndef PATHNAMES_H__
 #define PATHNAMES_H__
 
-#define CRLSERVER_GAMES_DIR "games"
-#define CRLSERVER_EDITORS_DIR "editors"
+#define CRLSERVER_GAMES_DIR "crlsdir/games"
+#define CRLSERVER_EDITORS_DIR "crlsdir/editors"
+#define CRLSERVER_MENUS_DIR "crlsdir/menus"
 #define CRLSERVER_LOG_FILE "/tmp/crlserver.log"
 #define CRLSERVER_PLAYGROUND "/tmp/crlserver/"
 

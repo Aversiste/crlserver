@@ -52,7 +52,7 @@ print_file(const char *path) {
 
 	(void)erase();
 	if (fd == NULL)
-		clean_up(1, "Important file is missing");
+		clean_up(1, path);
 
 	while ((buf = fparseln(fd, NULL, NULL,
 	  sep, FPARSELN_UNESCALL)) != NULL) {
@@ -122,7 +122,7 @@ games_menu(games_list *glp) {
 			default:
 				break;
 		}
-		print_file("menus/games.txt");
+		print_file(CRLSERVER_MENUS_DIR"/games.txt");
 	} while ((ch = getch()) != 'q');
 }
 
@@ -138,7 +138,7 @@ user_menu(void) {
 
 	do {
 		i = 6;
-		print_file("menus/banner.txt");
+		print_file(CRLSERVER_MENUS_DIR"/banner.txt");
 		SLIST_FOREACH(glp, &gl_head, ls) {
 			mvprintw(i, 1, "%s) %s - %s (%s)", glp->key, glp->name,
 					glp->lname, glp->version);
@@ -164,7 +164,7 @@ user_menu(void) {
 
 __inline void
 server_info(void) {
-	print_file("menus/server_info.txt");
+	print_file(CRLSERVER_MENUS_DIR"/server_info.txt");
 	getch();
 }
 
@@ -256,7 +256,7 @@ login_menu(void) {
 
 	form = new_form(fields);
 	post_form(form);
-	print_file("menus/login.txt");
+	print_file(CRLSERVER_MENUS_DIR"/login.txt");
 	refresh();
 
 	form_navigation(&form);
@@ -310,7 +310,7 @@ register_menu(void) {
 
 	form = new_form(fields);
 	post_form(form);
-	print_file("menus/register.txt");
+	print_file(CRLSERVER_MENUS_DIR"/register.txt");
 	refresh();
 
 	form_navigation(&form);
@@ -383,6 +383,6 @@ menus(void) {
 			default:
 				break;
 		}
-		print_file("menus/general.txt");
+		print_file(CRLSERVER_MENUS_DIR"/general.txt");
 	} while ((c = getch()) != 'q');
 }
