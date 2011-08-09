@@ -20,6 +20,7 @@
 struct session {
 	int logged;
 	char *name;
+	char *home;
 };
 
 #endif

@@ -23,6 +23,7 @@
 #include <sys/queue.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <sys/param.h>
 #include <ctype.h>
 #include <curses.h>
 #include <err.h>
@@ -75,14 +76,13 @@ form_release(FORM *form) {
 		free_field(fields[i]);
 }
 
-extern char **environ;
-
 static void
 games_menu(games_list *glp) {
-	int ch = 0;
-	int status;
+	int status, ch = 0;
 	pid_t pid;
 	char **ap, *argv[10];
+	char home[MAXPATHLEN] = "HOME=";
+	char *crls_env[2] = { "TERM=xterm" };
 
 	argv[0] = glp->path;
 	for (ap = &argv[1]; ap < &argv[9] &&
@@ -94,6 +94,8 @@ games_menu(games_list *glp) {
 	}
 	*ap = NULL;
 
+	(void)strlcat(home, session.home, sizeof home);
+	crls_env[1] = home;
 	do {
 		switch (ch) {
 			case 'p':
@@ -106,7 +108,7 @@ games_menu(games_list *glp) {
 					clean_up(1, "fork");
 				else if (pid == 0) {
 					/* child */
-					execve(glp->path, argv, environ);
+					execve(glp->path, argv, crls_env);
 					logmsg("execve error\n");
 					clean_up(1, "execve error");
 				}
@@ -156,6 +158,7 @@ user_menu(void) {
 	} while (1);
 	list_release(&gl_head);
 	free(session.name);
+	free(session.home);
 	session.logged = 0;
 }
 

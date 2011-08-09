@@ -49,6 +49,11 @@ create_playground(const char *player_name) {
 
 	if (access(playground, F_OK) == -1)
 		return -1;
+
+	session.home = strdup(playground);
+	if (session.home == NULL)
+		fclean_up("Memory error");
+
 	return 0;
 }
 
