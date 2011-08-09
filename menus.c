@@ -280,11 +280,6 @@ login_menu(void) {
 		return -1;
 	}
 
-	if (create_playground(user) == -1) {
-		scrmsg(14, 1, "Error while creating your playground");
-		form_release(form);
-		return -1;
-	}
 	session.name = strdup(user);
 	form_release(form);
 	user_menu();
@@ -345,6 +340,11 @@ register_menu(void) {
 			scrmsg(14, 1, "':' caractere is forbid");
 			goto clean;
 		}
+	}
+
+	if (create_playground(user) == -1) {
+		scrmsg(14, 1, "Error while creating your playground");
+		goto clean;
 	}
 
 	/* This function actually print is own error message */
