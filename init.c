@@ -14,19 +14,43 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <sys/queue.h>
+#include <sys/types.h>
+#include <sys/param.h>
+#include <sys/stat.h>
 #include <curses.h>
 #include <err.h>
 #include <stdlib.h>
 #include <sysexits.h>
-#include <sys/queue.h>
+#include <string.h>
+#include <unistd.h>
 
 #include "crlserver.h"
 #include "db.h"
 #include "init.h"
 #include "log.h"
+#include "pathnames.h"
 #include "session.h"
 
 struct session session;
+
+int
+create_playground(const char *player_name) {
+	char playground[MAXPATHLEN] = CRLSERVER_PLAYGROUND;
+
+	if (player_name == NULL)
+		return -1;
+
+	(void)strncat(playground, player_name, 1);
+	(void)mkdir(playground, 0700);
+	(void)strlcat(playground, "/", sizeof playground);
+	(void)strlcat(playground, player_name, sizeof playground);
+	(void)mkdir(playground, 0700);
+
+	if (access(playground, F_OK) == -1)
+		return -1;
+	return 0;
+}
 
 void
 init(void) {

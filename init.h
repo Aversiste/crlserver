@@ -17,6 +17,7 @@
 #ifndef INIT_H_
 #define INIT_H_
 
+int create_playground(const char *);
 void init(void);
 void start_window(void);
 __inline void end_window(void);
