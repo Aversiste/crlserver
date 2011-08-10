@@ -15,6 +15,8 @@
  */
 
 #include <sys/types.h>
+#include <sys/times.h>
+#include <sys/select.h>
 #include <curses.h>
 #include <errno.h>
 #include <stdarg.h>
