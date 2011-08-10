@@ -95,7 +95,11 @@ logmsg(const char *fmt, ...) {
 
 void
 scrmsg(int y, int x, const char *msg) {
-	mvaddstr(y, x, msg);
-	refresh();
-	sleep(2);
+	struct timeval timeout;
+
+	timeout.tv_sec = 2;
+	timeout.tv_usec = 0;
+	(void)mvaddstr(y, x, msg);
+	(void)refresh();
+	(void)select(0, NULL, NULL, NULL, &timeout);
 }
