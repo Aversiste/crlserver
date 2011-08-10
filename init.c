@@ -126,7 +126,7 @@ init_playground_dir(const char *player_name) {
 	if (session.home == NULL)
 		fclean_up("Memory error");
 	*/
-	return 0;
+	return init_playground_files(playground);
 }
 
 void
