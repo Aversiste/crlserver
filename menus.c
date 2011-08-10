@@ -18,18 +18,21 @@
 # include <util.h>
 #elif __Linux__
 # include "compat/util.h"
+# define _XOPEN_SOURCE
+# define _BSD_SOURCE
 #endif
 
+#include <sys/param.h>
 #include <sys/queue.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <sys/param.h>
+
 #include <ctype.h>
 #include <curses.h>
 #include <err.h>
 #include <form.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 #include "crlserver.h"
@@ -81,7 +84,7 @@ games_menu(games_list *glp) {
 	int status, ch = 0;
 	pid_t pid;
 	char **ap, *argv[10];
-	char home[MAXPATHLEN] = "HOME=";
+	char home[ MAXPATHLEN + 5 ] = "HOME=";
 	char *crls_env[2] = { "TERM=xterm" };
 
 	argv[0] = glp->path;
@@ -110,6 +113,7 @@ games_menu(games_list *glp) {
 					/* child */
 					execve(glp->path, argv, crls_env);
 					logmsg("execve error\n");
+					fprintf(stderr, "%s %s %s\n", crls_env[0], crls_env[1], glp->path);
 					clean_up(1, "execve error");
 				}
 				else /* parent */
@@ -263,27 +267,29 @@ login_menu(void) {
 	user = field_sanitize(fields[0]);
 	pass = field_sanitize(fields[1]);
 
-	if (user == NULL || pass == NULL) {
-		form_release(form);
-		return -1;
-	}
+	if (user == NULL || pass == NULL)
+		goto clean;
 
-	if (db_check_user(user, crypt(pass, "$1")) != 0) {
-		form_release(form);
-		return -1;
-	}
+	if (db_check_user(user, crypt(pass, "$1")) != 0)
+		goto clean;
 
 	/* This flag is set by db_check_user */
 	if (session.logged == 0) {
 		scrmsg(14, 1, "No match");
-		form_release(form);
-		return -1;
+		goto clean;
 	}
 
-	session.name = strdup(user);
+	if (init_session(user) != 0) {
+		scrmsg(14, 1, "Error whith your session");
+		goto clean;
+	}
+
 	form_release(form);
 	user_menu();
 	return 0;
+clean:
+	form_release(form);
+	return -1;
 }
 
 static void
@@ -342,7 +348,7 @@ register_menu(void) {
 		}
 	}
 
-	if (create_playground(user) == -1) {
+	if (init_playground_dir(user) == -1) {
 		scrmsg(14, 1, "Error while creating your playground");
 		goto clean;
 	}
