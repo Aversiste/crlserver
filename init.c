@@ -14,16 +14,22 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <sys/queue.h>
-#include <sys/types.h>
+#ifdef __Linux__
+# define _BSD_SOURCE
+# include <bsd/bsd.h>
+#endif
+
 #include <sys/param.h>
+#include <sys/queue.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+
 #include <curses.h>
 #include <dirent.h>
 #include <err.h>
 #include <stdlib.h>
-#include <sysexits.h>
 #include <string.h>
+#include <sysexits.h>
 #include <unistd.h>
 
 #include "crlserver.h"
@@ -35,7 +41,8 @@
 
 struct session session;
 
-static int copy_misc_folder_to(const char *path) {
+int
+init_playground_files(const char *path) {
 	struct dirent* dp;
 	const char *misc = CRLSERVER_MISC_DIR;
 	DIR* dir = opendir(misc);
@@ -66,6 +73,7 @@ static int copy_misc_folder_to(const char *path) {
 		}
 		
 		while (feof(ifd) == 0) {
+			memset(buf, '\0', 1024);
 			fread(buf, 1, 1024, ifd);
 			fwrite(buf, 1, 1024, ofd);
 		}
@@ -77,7 +85,28 @@ static int copy_misc_folder_to(const char *path) {
 }
 
 int
-create_playground(const char *player_name) {
+init_session(const char *name) {
+	char path[MAXPATHLEN] = {0};
+
+	session.name = strdup(name);
+	if (session.name == NULL)
+		fclean_up("Memory error");
+
+	(void)snprintf(path, sizeof path, "%s/%c/%s",
+		 CRLSERVER_PLAYGROUND, session.name[0], session.name);
+	session.home = strdup(path);
+	if (session.home == NULL)
+		fclean_up("Memory error");
+	if (access(session.home, F_OK) != 0) {
+		free(session.home);
+		free(session.name);
+		return -1;
+	}
+	return 0;
+}
+
+int
+init_playground_dir(const char *player_name) {
 	char playground[MAXPATHLEN] = CRLSERVER_PLAYGROUND;
 
 	if (player_name == NULL)
@@ -92,11 +121,12 @@ create_playground(const char *player_name) {
 	if (access(playground, F_OK) == -1)
 		return -1;
 
+	/*
 	session.home = strdup(playground);
 	if (session.home == NULL)
 		fclean_up("Memory error");
-	
-	return copy_misc_folder_to(session.home);
+	*/
+	return 0;
 }
 
 void
@@ -114,6 +144,8 @@ init(void) {
 		fclean_up("must be displayed on 24 x 80 screen (or larger)");
 
 	session.logged = 0;
+	session.name = 0;
+	session.home = 0;
 }
 
 void

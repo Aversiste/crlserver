@@ -17,7 +17,8 @@
 #ifndef INIT_H_
 #define INIT_H_
 
-int create_playground(const char *);
+int init_playground_files(const char *);
+int init_playground_dir(const char *);
 void init(void);
 void start_window(void);
 __inline void end_window(void);
