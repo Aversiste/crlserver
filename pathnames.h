@@ -20,6 +20,7 @@
 #define CRLSERVER_GAMES_DIR "crlsdir/games"
 #define CRLSERVER_EDITORS_DIR "crlsdir/editors"
 #define CRLSERVER_MENUS_DIR "crlsdir/menus"
+#define CRLSERVER_MISC_DIR "crlsdir/misc"
 #define CRLSERVER_LOG_FILE "/tmp/crlserver.log"
 #define CRLSERVER_PLAYGROUND "/tmp/crlserver/"
 
