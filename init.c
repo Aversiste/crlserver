@@ -112,6 +112,7 @@ init_playground_dir(const char *player_name) {
 	if (player_name == NULL)
 		return -1;
 
+	(void)strlcat(playground, "/", sizeof playground);
 	(void)strncat(playground, player_name, 1);
 	(void)mkdir(playground, 0700);
 	(void)strlcat(playground, "/", sizeof playground);
