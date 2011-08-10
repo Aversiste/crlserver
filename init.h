@@ -19,6 +19,7 @@
 
 int init_playground_files(const char *);
 int init_playground_dir(const char *);
+int init_session(const char *);
 void init(void);
 void start_window(void);
 __inline void end_window(void);
