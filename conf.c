@@ -55,10 +55,12 @@ parse(FILE *fd) {
 	if (l == NULL)
 		return NULL;
 
+	logmsg("toto\n");
 	while ((b = FPARSELN(fd)) != NULL) {
 		char *key = strtok(b, "=");
 		char *value = strtok(NULL, "=");
 
+		logmsg("%s=%s\n", key, value);
 		if (strncmp("name", key, 4) == 0 && value != NULL)
 			l->name = strdup(value);
 		else if (strncmp("longname", key, 8) == 0 && value != NULL)
@@ -88,10 +90,14 @@ load_folder(const char *path, struct list_head *lh) {
 	if (dir == NULL)
 		clean_up(EX_IOERR, "Can't open %s\n", path);
 
+	logmsg("Load folder %s\n", path);
 	while ((dp = readdir(dir)) != NULL) {
 		char buf[ (MAXNAMLEN + 1) * 2 ];
 		FILE* fd;
 		struct list *lp;
+
+		(void)snprintf(buf, strlen(path) + strlen(dp->d_name) + 2, 
+				"%s/%s\n", path, dp->d_name);
 
 		/* Skip non-regular files and empty files. */
 		if ((dp->d_type != DT_REG && dp->d_type != DT_LNK)
@@ -101,12 +107,10 @@ load_folder(const char *path, struct list_head *lh) {
 		if (dp->d_name[0] == '.')
 			continue;
 
-		(void)snprintf(buf, strlen(path) + strlen(dp->d_name) + 2, 
-				"%s/%s\n", path, dp->d_name);
-
+		logmsg("Test(2) %s\n", buf);
 		fd = fopen(buf, "r");
 		if (fd == NULL) {
-			logmsg("%s", buf);
+			logmsg("Fail %s\n", buf);
 			continue;
 		}
 
