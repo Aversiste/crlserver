@@ -94,11 +94,15 @@ load_folder(const char *path, struct list_head *lh) {
 		struct list *lp;
 
 		/* Skip non-regular files and empty files. */
-		(void)snprintf(buf, strlen(path) + strlen(dp->d_name) + 2, 
-				"%s/%s\n", path, dp->d_name);
 		if ((dp->d_type != DT_REG && dp->d_type != DT_LNK)
 			|| file_size(buf) == 0)
 			continue;
+		/* Also skip annoying secrets files */
+		if (dp->d_name[0] == '.')
+			continue;
+
+		(void)snprintf(buf, strlen(path) + strlen(dp->d_name) + 2, 
+				"%s/%s\n", path, dp->d_name);
 
 		fd = fopen(buf, "r");
 		if (fd == NULL) {
