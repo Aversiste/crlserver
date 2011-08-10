@@ -14,29 +14,29 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/queue.h>
-#include <sysexits.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <stdio.h>
-
 #ifdef __OpenBSD__
 # include <util.h>
-# define MAXNAMLEN       255
 #elif __Linux__
 # define __USE_BSD
 # define _BSD_SOURCE
 # include "compat/util.h"
 #endif
 
+#include <sys/param.h>
+#include <sys/queue.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+
 #include <dirent.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <sysexits.h>
+#include <unistd.h>
 
 #include "conf.h"
-#include "pathnames.h"
 #include "log.h"
+#include "pathnames.h"
 
 #define FPARSELN(x)	fparseln((x), NULL, NULL, NULL, FPARSELN_UNESCALL)
 
