@@ -333,17 +333,9 @@ register_menu(void) {
 		scrmsg(14, 1, "Passwords don't match!");
 		goto clean;
 	}
-	if (isalnum(*user) == 0) {
-		scrmsg(14, 1, "Only alphanumerics caracteres are allowed for the first letter.");
-		goto clean;
-	}
 	for (i = 0; user[i] != '\0'; ++i) {
-		if (isascii(user[i]) == 0) {
+		if (isalnum(user[i]) == 0) {
 			scrmsg(14, 1, "Only ascii in the username");
-			goto clean;
-		}
-		if (user[i] == ':') {
-			scrmsg(14, 1, "':' caractere is forbid");
 			goto clean;
 		}
 	}
