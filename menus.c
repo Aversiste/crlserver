@@ -101,30 +101,30 @@ games_menu(games_list *glp) {
 	crls_env[1] = home;
 	do {
 		switch (ch) {
-			case 'p':
-			case 'P':
-				clear();
-				refresh();
-				endwin();
-				pid = fork();
-				if (pid < 0)
-					clean_up(1, "fork");
-				else if (pid == 0) {
-					/* child */
-					execve(glp->path, argv, crls_env);
-					logmsg("execve error\n");
-					fprintf(stderr, "%s %s %s\n", crls_env[0], crls_env[1], glp->path);
-					clean_up(1, "execve error");
-				}
-				else /* parent */
-					waitpid(pid, &status, 0);
-				break;
-			case 'e':
-			case 'E':
-				scrmsg(14, 1, "Edit");
-				break;
-			default:
-				break;
+		case 'p':
+		case 'P':
+			clear();
+			refresh();
+			endwin();
+			pid = fork();
+			if (pid < 0)
+				clean_up(1, "fork");
+			else if (pid == 0) {
+				/* child */
+				execve(glp->path, argv, crls_env);
+				logmsg("execve error\n");
+				fprintf(stderr, "%s %s %s\n", crls_env[0], crls_env[1], glp->path);
+				clean_up(1, "execve error");
+			}
+			else /* parent */
+				waitpid(pid, &status, 0);
+			break;
+		case 'e':
+		case 'E':
+			scrmsg(14, 1, "Edit");
+			break;
+		default:
+			break;
 		}
 		print_file(CRLSERVER_MENUS_DIR"/games.txt");
 	} while ((ch = getch()) != 'q');
