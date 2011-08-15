@@ -17,6 +17,7 @@
 #ifndef INIT_H_
 #define INIT_H_
 
+void byebye(int);
 int init_playground_files(const char *);
 int init_playground_dir(const char *);
 int init_session(const char *);

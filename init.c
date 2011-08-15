@@ -27,6 +27,8 @@
 #include <curses.h>
 #include <dirent.h>
 #include <err.h>
+#include <errno.h>
+#include <signal.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sysexits.h>
@@ -40,6 +42,33 @@
 #include "session.h"
 
 struct session session;
+
+static void
+heed_signals(void) {
+	signal(SIGINT, byebye);
+	signal(SIGQUIT, byebye);
+	signal(SIGHUP, SIG_IGN);
+	signal(SIGTERM, SIG_IGN);
+	signal(SIGTSTP, SIG_IGN);
+}
+
+static void
+ignore_signals(void) {
+	signal(SIGINT, SIG_IGN);
+	signal(SIGQUIT, SIG_IGN);
+	signal(SIGHUP, SIG_IGN);
+	signal(SIGTERM, SIG_IGN);
+	signal(SIGTSTP, SIG_IGN);
+}
+
+void
+byebye(int unused) {
+	unused = 0;
+	ignore_signals();
+	/* TODO: Ask user if he really wants to quit */
+	clean_upx(1, "Bye bye !");
+	heed_signals();
+}
 
 int
 init_playground_files(const char *path) {
@@ -67,20 +96,23 @@ init_playground_files(const char *path) {
 		ifd = fopen(in_path, "r");
 		ofd = fopen(out_path, "a+");
 		if (ifd == NULL || ofd == NULL) {
-			fclose(ifd);
-			fclose(ofd);
+			(void)fclose(ifd);
+			(void)fclose(ofd);
 			continue;
 		}
 		
 		while (feof(ifd) == 0) {
-			memset(buf, '\0', 1024);
-			fread(buf, 1, 1024, ifd);
-			fwrite(buf, 1, 1024, ofd);
+			(void)memset(buf, '\0', 1024);
+			(void)fread(buf, 1, 1024, ifd);
+			(void)fwrite(buf, 1, 1024, ofd);
 		}
-		fclose(ifd);
-		fclose(ofd);
+		if (fclose(ifd) != 0)
+			logmsg(strerror(errno));
+		if (fclose(ofd) != 0)
+			logmsg(strerror(errno));
 	}
-	closedir(dir);
+	if (closedir(dir) == -1)
+		logmsg(strerror(errno));
 	return 0;
 }
 
@@ -132,21 +164,23 @@ init_playground_dir(const char *player_name) {
 
 void
 init(void) {
+	heed_signals();
+
 	db_init();
 
-	initscr();
+	(void)initscr();
 	if (has_colors() == TRUE)
-		start_color();
-	curs_set(0); /* Remove the cursor */
-
+		(void)start_color();
+	(void)curs_set(0);
 	start_window();
 
+	/* A lot of games ask this size, so check it now. */
 	if ((LINES < DROWS) || (COLS < DCOLS))
 		fclean_up("must be displayed on 24 x 80 screen (or larger)");
 
 	session.logged = 0;
-	session.name = 0;
-	session.home = 0;
+	session.name = NULL;
+	session.home = NULL;
 }
 
 void
