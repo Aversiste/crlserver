@@ -28,6 +28,7 @@
 #include <sys/types.h>
 
 #include <dirent.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -55,12 +56,10 @@ parse(FILE *fd) {
 	if (l == NULL)
 		return NULL;
 
-	logmsg("toto\n");
 	while ((b = FPARSELN(fd)) != NULL) {
 		char *key = strtok(b, "=");
 		char *value = strtok(NULL, "=");
 
-		logmsg("%s=%s\n", key, value);
 		if (strncmp("name", key, 4) == 0 && value != NULL)
 			l->name = strdup(value);
 		else if (strncmp("longname", key, 8) == 0 && value != NULL)
@@ -90,7 +89,6 @@ load_folder(const char *path, struct list_head *lh) {
 	if (dir == NULL)
 		clean_up(EX_IOERR, "Can't open %s\n", path);
 
-	logmsg("Load folder %s\n", path);
 	while ((dp = readdir(dir)) != NULL) {
 		char buf[ (MAXNAMLEN + 1) * 2 ];
 		FILE* fd;
@@ -99,15 +97,11 @@ load_folder(const char *path, struct list_head *lh) {
 		(void)snprintf(buf, strlen(path) + strlen(dp->d_name) + 2, 
 				"%s/%s\n", path, dp->d_name);
 
-		/* Skip non-regular files and empty files. */
+		/* Skip non-regular files, empty files and secret files. */
 		if ((dp->d_type != DT_REG && dp->d_type != DT_LNK)
-			|| file_size(buf) == 0)
-			continue;
-		/* Also skip annoying secrets files */
-		if (dp->d_name[0] == '.')
+			|| file_size(buf) == 0 || dp->d_name[0] == '.')
 			continue;
 
-		logmsg("Test(2) %s\n", buf);
 		fd = fopen(buf, "r");
 		if (fd == NULL) {
 			logmsg("Fail %s\n", buf);
@@ -119,7 +113,8 @@ load_folder(const char *path, struct list_head *lh) {
 			SLIST_INSERT_HEAD(lh, lp, ls);
 		(void)fclose(fd);
 	}
-	(void)closedir(dir);
+	if (closedir(dir) == -1)
+		logmsg(strerror(errno));
 }
 
 void
