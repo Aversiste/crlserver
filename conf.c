@@ -58,7 +58,7 @@ parse(FILE *fd) {
 
 	while ((b = FPARSELN(fd)) != NULL) {
 		char *key = strtok(b, "=");
-		char *value = strtok(NULL, "=");
+		char *value = strtok(NULL, "\n");
 
 		if (strncmp("name", key, 4) == 0 && value != NULL)
 			l->name = strdup(value);
