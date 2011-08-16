@@ -66,7 +66,7 @@ byebye(int unused) {
 	unused = 0;
 	ignore_signals();
 	/* TODO: Ask user if he really wants to quit */
-	clean_upx(1, "Bye bye !");
+	clean_upx(1, "Bye bye !\n");
 	heed_signals();
 }
 
