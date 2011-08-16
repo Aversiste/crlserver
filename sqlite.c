@@ -88,7 +88,6 @@ sqlite_init(void) {
 
 	if (query == NULL)
 		clean_up(1, "sqlite_init");
-
 	sqlite_cmd(query, NULL, NULL);
 }
 
@@ -98,10 +97,8 @@ sqlite_insert(const char *name, const char *email, const char *password) {
 		(name, email, password) VALUES \
 		 ('%q', '%q', '%q');", name, email, password);
 
-	logmsg("sqlite_insert %s %s %s\n", name, email, password);
 	if (query == NULL)
 		clean_up(1, "sqlite_insert");
-
 	sqlite_cmd(query, NULL, NULL);
 }
 
@@ -114,7 +111,6 @@ sqlite_update(unsigned int id, const char *name, const char *email, const char *
 	logmsg("sqlite_update %s %s %s for id %i\n", name, email, password, id);
 	if (query == NULL)
 		clean_up(1, "sqlite_update");
-
 	sqlite_cmd(query, NULL, NULL);
 }
 
@@ -123,10 +119,8 @@ do_user_exist(const char *name) {
 	char *query = sqlite3_mprintf("SELECT * FROM users \
 		WHERE name LIKE \"%s\" LIMIT 1;", name);
 
-	logmsg("do_user_exists %s\n", name);
 	if (query == NULL)
 		clean_up(1, "do_user_exist");
-
 	return sqlite_cmd(query, &user_exist_callback, NULL);
 }
 
@@ -134,12 +128,8 @@ int
 sqlite_check_user(const char *name, char *pass) {
 	char *query = sqlite3_mprintf("SELECT name, password FROM users \
 		WHERE name LIKE \"%s\" LIMIT 1;", name);
-	int ret = 0;
 
-	logmsg("sqlite_check_user %s\n", name);
 	if (query == NULL)
 		clean_up(1, "sqlite_check_user");
-
-	ret = sqlite_cmd(query, &check_user_callback, pass);
-	return ret;
+	return sqlite_cmd(query, &check_user_callback, pass);
 }
