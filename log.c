@@ -90,7 +90,7 @@ logmsg(const char *fmt, ...) {
 		clean_up(1, "fopen");
 	
 	va_start(ap, fmt);
-	vfprintf(fd, fmt, ap);
+	(void)vfprintf(fd, fmt, ap);
 	va_end(ap);
 	(void)fclose(fd);
 }
