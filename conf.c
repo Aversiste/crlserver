@@ -54,35 +54,35 @@ store_in_array(char *src, char **a, const int begin, const int end) {
 	int i = begin;
 
 	for (; i < end; ++i) {
-		char *p, *bp;
+		char *token, *bp;
 
 		if (a[i] != NULL)
 			continue;
 
-		p = strsep(&src, " \t");
-		if (p == NULL)
+		token = strsep(&src, " \t");
+		if (token == NULL)
 			continue;
 
-		bp = strchr(p, '%');
+		bp = strchr(token, '%');
 		if (bp != NULL && strncmp(bp, "%user%", 6) == 0) {
-			size_t newsize = strlen(p) + strlen(session.name) + 1;
-			char *newp, *ep;
+			size_t newsize = strlen(token) + strlen(session.name) + 1;
+			char *newtoken, *ep;
 
-			if ((newp = calloc(newsize, sizeof *newp)) == NULL)
+			if ((newtoken = calloc(newsize, sizeof *newtoken)) == NULL)
 				fclean_up("Memory error");
-			strlcpy(newp, p, newsize);
-			p = newp;
-			bp = strchr(p, '%');
-			ep = strdup(strrchr(p, '%'));
+			strlcpy(newtoken, token, newsize);
+			token = newtoken;
+			bp = strchr(token, '%');
+			ep = strdup(strrchr(token, '%'));
 			if (ep == NULL)
 				fclean_up("Memory error");
 			strlcpy(bp, session.name, newsize);
-			strlcat(p, ep + 1, newsize);
-			free(bp);
-			a[i] = p;
+			strlcat(token, ep + 1, newsize);
+			free(ep);
+			a[i] = token;
 		}
 		else
-			a[i] = strdup(p);
+			a[i] = strdup(token);
 	}
 }
 
