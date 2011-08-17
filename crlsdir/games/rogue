@@ -5,4 +5,4 @@ description=Written by Tim Stoehr
 key=r
 path=/usr/games/rogue
 params=
-env=
+env=ROGUEOPTS=name=%user%

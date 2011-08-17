@@ -35,6 +35,7 @@
 #include <sysexits.h>
 #include <unistd.h>
 
+#include "crlserver.h"
 #include "conf.h"
 #include "log.h"
 #include "pathnames.h"
@@ -46,6 +47,43 @@ file_size(const char *path) {
 	struct stat s;
 	(void)stat(path, &s);
 	return (int)s.st_size;
+}
+
+static void
+store_in_array(char *src, char **a, const int begin, const int end) {
+	int i = begin;
+
+	for (; i < end; ++i) {
+		char *p, *bp;
+
+		if (a[i] != NULL)
+			continue;
+
+		p = strsep(&src, " \t");
+		if (p == NULL)
+			continue;
+
+		bp = strchr(p, '%');
+		if (bp != NULL && strncmp(bp, "%user%", 6) == 0) {
+			size_t newsize = strlen(p) + strlen(session.name) + 1;
+			char *newp, *ep;
+
+			if ((newp = calloc(newsize, sizeof *newp)) == NULL)
+				fclean_up("Memory error");
+			strlcpy(newp, p, newsize);
+			p = newp;
+			bp = strchr(p, '%');
+			ep = strdup(strrchr(p, '%'));
+			if (ep == NULL)
+				fclean_up("Memory error");
+			strlcpy(bp, session.name, newsize);
+			strlcat(p, ep + 1, newsize);
+			free(bp);
+			a[i] = p;
+		}
+		else
+			a[i] = strdup(p);
+	}
 }
 
 static struct list*
@@ -70,10 +108,17 @@ parse(FILE *fd) {
 			l->desc= strdup(value);
 		else if (strncmp("path", key, 4) == 0 && value != NULL)
 			l->path = strdup(value);
-		else if (strncmp("params", key, 6) == 0 && value != NULL)
-			l->params = strdup(value);
-		else if (strncmp("env", key, 3) == 0 && value != NULL)
-			l->env = strdup(value);
+		else if (strncmp("params", key, 6) == 0 && value != NULL) {
+			if (l->path == NULL)
+				clean_upx(1, "Error in a config file\n");
+			l->params[0] = l->path;
+			store_in_array(value, l->params, 1,
+					CRLSERVER_MAX_PARAMS_LENGTH);
+		}
+		else if (strncmp("env", key, 3) == 0 && value != NULL) {
+			store_in_array(value, session.env, 2,
+					CRLSERVER_MAX_ENV_LENGTH);
+		}
 		else if (strncmp("key", key, 3) == 0 && value != NULL)
 			l->key = strdup(value);
 		free(b);
@@ -99,7 +144,7 @@ load_folder(const char *path, struct list_head *lh) {
 
 		/* Skip non-regular files, empty files and secret files. */
 		if ((dp->d_type != DT_REG && dp->d_type != DT_LNK)
-			|| file_size(buf) == 0 || dp->d_name[0] == '.')
+				|| file_size(buf) == 0 || dp->d_name[0] == '.')
 			continue;
 
 		fd = fopen(buf, "r");
@@ -121,6 +166,7 @@ void
 list_release(struct list_head *lh) {
 	struct list *lp;
 	while (!SLIST_EMPTY(lh)) {
+		unsigned int i;
 		lp = SLIST_FIRST(lh);
 		SLIST_REMOVE_HEAD(lh, ls);
 
@@ -129,8 +175,8 @@ list_release(struct list_head *lh) {
 		free(lp->version);
 		free(lp->desc);
 		free(lp->path);
-		free(lp->params);
-		free(lp->env);
+		for (i = 1; i < CRLSERVER_MAX_PARAMS_LENGTH ; ++i) 
+			free(lp->params[i]);
 		free(lp);
 	}
 }

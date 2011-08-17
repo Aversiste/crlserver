@@ -83,22 +83,7 @@ static void
 games_menu(games_list *glp) {
 	int status, ch = 0;
 	pid_t pid;
-	char **ap, *argv[10];
-	char home[ MAXPATHLEN + 5 ] = "HOME=";
-	char *crls_env[2] = { "TERM=xterm" };
 
-	argv[0] = glp->path;
-	for (ap = &argv[1]; ap < &argv[9] &&
-			(*ap = strsep(&glp->params, " \t")) != NULL;) {
-		if (strchr(*ap, '%') != NULL)
-			*ap = session.name;
-		if (**ap != '\0')
-			ap++;
-	}
-	*ap = NULL;
-
-	(void)strlcat(home, session.home, sizeof home);
-	crls_env[1] = home;
 	do {
 		switch (ch) {
 		case 'p':
@@ -111,9 +96,7 @@ games_menu(games_list *glp) {
 				clean_up(1, "fork");
 			else if (pid == 0) {
 				/* child */
-				execve(glp->path, argv, crls_env);
-				logmsg("execve error\n");
-				fprintf(stderr, "%s %s %s\n", crls_env[0], crls_env[1], glp->path);
+				execve(glp->path, glp->params, session.env);
 				clean_up(1, "execve error");
 			}
 			else /* parent */
@@ -163,6 +146,7 @@ user_menu(void) {
 	list_release(&gl_head);
 	free(session.name);
 	free(session.home);
+	free_env();
 	session.logged = 0;
 }
 

@@ -24,5 +24,6 @@ int init_session(const char *);
 void init(void);
 void start_window(void);
 __inline void end_window(void);
+void free_env(void);
 
 #endif

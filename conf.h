@@ -18,6 +18,7 @@
 #define CONF_H__
 
 #include <sys/queue.h>
+#include "crlserver.h"
 
 SLIST_HEAD(list_head, list);
 typedef struct list_head games_list_head;
@@ -36,8 +37,7 @@ struct list {
 	char *desc;
 	char *key;
 	char *path;
-	char *params;
-	char *env;
+	char *params[CRLSERVER_MAX_PARAMS_LENGTH];
 	SLIST_ENTRY(list) ls;
 };
 

@@ -21,6 +21,7 @@ struct session {
 	int logged;
 	char *name;
 	char *home;
+	char *env[CRLSERVER_MAX_ENV_LENGTH];
 };
 
 #endif

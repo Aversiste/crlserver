@@ -119,6 +119,7 @@ init_playground_files(const char *path) {
 int
 init_session(const char *name) {
 	char path[MAXPATHLEN] = {0};
+	char home[MAXPATHLEN + 5] = "HOME=";
 
 	session.name = strdup(name);
 	if (session.name == NULL)
@@ -134,6 +135,11 @@ init_session(const char *name) {
 		free(session.name);
 		return -1;
 	}
+
+	session.env[0] = "TERM="CRLSERVER_DEFAULT_TERM;
+	(void)strlcat(home, session.home, sizeof home);
+	if ((session.env[1] = strdup(home)) == NULL)
+		fclean_up("Memory error");
 	return 0;
 }
 
@@ -181,6 +187,7 @@ init(void) {
 	session.logged = 0;
 	session.name = NULL;
 	session.home = NULL;
+	memset(session.env, '\0', sizeof session.env / sizeof session.env[0]);
 }
 
 void
@@ -194,4 +201,13 @@ start_window(void) {
 __inline void
 end_window() {
 	(void)endwin();
+}
+
+void
+free_env(void) {
+	unsigned int i = 1; /* The env array has one hard coded field */
+
+	for (; i < CRLSERVER_MAX_ENV_LENGTH; ++i) {
+		free(session.env[i]);
+	}
 }
