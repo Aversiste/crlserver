@@ -231,21 +231,23 @@ field_sanitize(const FIELD *field) {
 static int
 login_menu(void) {
 	FIELD *fields[3] = {0, 0, 0};
-	FORM  *form;
-	unsigned int i;
+	FORM  *form = NULL;
+	unsigned int i = 0;
 	char *user, *pass;
 
-	for (i = 0; i < 2; ++i) {
+	for (; i < 2; ++i) {
 		fields[i] = new_field(1, CRLS_MAXNAMELEN, 4 + i, 18, 0, 0);
-		field_opts_off(fields[i], O_AUTOSKIP);
+		(void)field_opts_off(fields[i], O_AUTOSKIP);
 	}
 	/* Protect the password */
-	field_opts_off(fields[1], O_PUBLIC);
+	(void)field_opts_off(fields[1], O_PUBLIC);
 
 	form = new_form(fields);
-	post_form(form);
+	if (form == NULL)
+		clean_up(1, "login_menu");
+	(void)post_form(form);
 	print_file(CRLSERVER_MENUS_DIR"/login.txt");
-	refresh();
+	(void)refresh();
 
 	form_navigation(&form);
 	user = field_sanitize(fields[0]);
@@ -268,11 +270,11 @@ login_menu(void) {
 		goto clean;
 	}
 
-	form_release(form);
+	(void)form_release(form);
 	user_menu();
 	return 0;
 clean:
-	form_release(form);
+	(void)form_release(form);
 	return -1;
 }
 
