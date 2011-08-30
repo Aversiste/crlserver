@@ -50,13 +50,13 @@ void
 print_file(const char *path) {
 	FILE *fd = fopen(path, "r");
 	int y = 0;
-	char *buf;
+	char *buf = NULL;
 	const char sep[3] = {'\\', '\\', 0};
 
-	(void)erase();
 	if (fd == NULL)
-		clean_up(1, path);
+		clean_up(1, "Error with file %s\n", path);
 
+	(void)erase();
 	while ((buf = fparseln(fd, NULL, NULL,
 	  sep, FPARSELN_UNESCALL)) != NULL) {
 		(void)mvprintw(y, 1, buf);
