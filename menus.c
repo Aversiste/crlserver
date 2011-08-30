@@ -210,9 +210,9 @@ form_navigation(FORM **form) {
 
 static char *
 field_sanitize(const FIELD *field) {
-	char *c, *s;
+	char *c = NULL;
+	char *s = field_buffer(field, 0);
 
-	s = field_buffer(field, 0);
 	if (s == NULL) {
 		scrmsg(14, 1, "A field is missing\n");
 		return NULL;
