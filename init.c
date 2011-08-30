@@ -207,7 +207,7 @@ void
 free_env(void) {
 	unsigned int i = 1; /* The env array has one hard coded field */
 
-	for (; i < CRLSERVER_MAX_ENV_LENGTH; ++i) {
+	for (; i < CRLSERVER_MAX_ENV_LENGTH && session.env[i] != NULL; ++i) {
 		free(session.env[i]);
 	}
 }
