@@ -59,11 +59,12 @@ print_file(const char *path) {
 
 	while ((buf = fparseln(fd, NULL, NULL,
 	  sep, FPARSELN_UNESCALL)) != NULL) {
-		mvprintw(y, 1, buf);
+		(void)mvprintw(y, 1, buf);
 		free(buf);
 		++y;
 	}
 	refresh();
+	(void)fclose(fd);
 }
 
 static void
