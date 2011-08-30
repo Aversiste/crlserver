@@ -83,16 +83,16 @@ form_release(FORM *form) {
 
 static void
 games_menu(games_list *glp) {
-	int status, ch = 0;
-	pid_t pid;
+	int status = 0, ch = 0;
+	pid_t pid = 0;
 
 	do {
 		switch (ch) {
 		case 'p':
 		case 'P':
-			clear();
-			refresh();
-			endwin();
+			(void)clear();
+			(void)refresh();
+			(void)endwin();
 			pid = fork();
 			if (pid < 0)
 				clean_up(1, "fork");
