@@ -117,13 +117,11 @@ games_menu(games_list *glp) {
 
 static void
 user_menu(void) {
-	size_t	gl_length;
 	games_list_head gl_head = SLIST_HEAD_INITIALIZER(gl_head);
 	games_list *glp;
 	int i, ch = 0;
 
 	load_folder(CRLSERVER_GAMES_DIR, &gl_head);
-	gl_length = list_size((struct list_head*)&gl_head);
 
 	do {
 		i = 6;
