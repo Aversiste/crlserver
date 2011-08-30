@@ -69,15 +69,16 @@ print_file(const char *path) {
 
 static void
 form_release(FORM *form) {
-	FIELD **fields;
-	int i, fmax;
+	FIELD **fields = form_fields(form);
+	int fmax = field_count(form);
+	int i = 0;
 
-	fields = form_fields(form);
-	fmax = field_count(form);
-	unpost_form(form);
-	free_form(form);
-	for (i = 0; i < fmax; ++i)
-		free_field(fields[i]);
+	if (fmax == ERR)
+		return;
+	(void)unpost_form(form);
+	(void)free_form(form);
+	for (; i < fmax; ++i)
+		(void)free_field(fields[i]);
 }
 
 static void
