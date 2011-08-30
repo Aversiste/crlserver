@@ -131,8 +131,8 @@ user_menu(void) {
 					glp->lname, glp->version);
 			++i;
 		}
-		mvaddstr(4, 1, "q) Quit");
-		refresh();
+		(void)mvaddstr(4, 1, "q) Quit");
+		(void)refresh();
 		ch = getch();
 		if (ch == 'q')
 			break;
