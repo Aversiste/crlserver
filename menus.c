@@ -281,24 +281,26 @@ clean:
 static void
 register_menu(void) {
 	FIELD *fields[5] = {0, 0, 0, 0, 0};
-	FORM  *form;
-	unsigned int i;
+	FORM  *form = NULL;
+	unsigned int i = 0;
 	char *user, *email, *pass, *pass2;
 	size_t pass_size;
 
-	for (i = 0; i < 4; ++i) {
+	for (; i < 4; ++i) {
 		fields[i] = new_field(1, CRLS_MAXNAMELEN, 4 + i, 18, 0, 0);
-		field_opts_off(fields[i], O_AUTOSKIP);
+		(void)field_opts_off(fields[i], O_AUTOSKIP);
 	}
 
 	/* Protect the password fields */
 	for (i = 2; fields[i] != NULL; ++i)
-		field_opts_off(fields[i], O_PUBLIC);
+		(void)field_opts_off(fields[i], O_PUBLIC);
 
 	form = new_form(fields);
-	post_form(form);
+	if (form == NULL)
+		clean_up(1, "register_menu");
+	(void)post_form(form);
 	print_file(CRLSERVER_MENUS_DIR"/register.txt");
-	refresh();
+	(void)refresh();
 
 	form_navigation(&form);
 	
@@ -336,7 +338,7 @@ register_menu(void) {
 		db_insert(user, email, crypt(pass, "$1"));
 
 clean:
-	form_release(form);
+	(void)form_release(form);
 }
 
 void
@@ -345,27 +347,24 @@ menus(void) {
 
 	do {
 		switch (c) {
-			case 'l':
-			case 'L':
-				if (login_menu() != 0) {
-					mvaddstr(14, 1, "Error");
-					sleep(1);
-				}
-				break;
-			case 'r':
-			case 'R':
-				register_menu();
-				break;
-			case 's':
-			case 'S':
-				server_info();
-				break;
-			case 'q':
-			case 'Q':
-				fclean_up("Good Bye");
-				break;
-			default:
-				break;
+		case 'l':
+		case 'L':
+			(void)login_menu();
+		break;
+		case 'r':
+		case 'R':
+			register_menu();
+			break;
+		case 's':
+		case 'S':
+			server_info();
+			break;
+		case 'q':
+		case 'Q':
+			fclean_up("Good Bye");
+			break;
+		default:
+			break;
 		}
 		print_file(CRLSERVER_MENUS_DIR"/general.txt");
 	} while ((c = getch()) != 'q');
