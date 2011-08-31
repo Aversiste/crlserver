@@ -211,3 +211,17 @@ free_env(void) {
 		free(session.env[i]);
 	}
 }
+
+int
+has_config_file(games_list *glp) {
+	char path[MAXPATHLEN];
+	
+	memset(path, '\0', MAXPATHLEN);
+	(void)strlcpy(path, session.home, sizeof path);
+	(void)strlcat(path, "/.", sizeof path);
+	(void)strlcat(path, glp->name, sizeof path);
+	(void)strlcat(path, "rc", sizeof path);
+	if (access(path, R_OK) == 0)
+		return 0;
+	return -1;
+}

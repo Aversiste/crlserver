@@ -14,6 +14,8 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include "conf.h"
+
 #ifndef SESSION_H__
 #define SESSION_H__
 
@@ -22,6 +24,7 @@ struct session {
 	char *name;
 	char *home;
 	char *env[CRLSERVER_MAX_ENV_LENGTH];
+	struct list_head *list[2];
 };
 
 #endif

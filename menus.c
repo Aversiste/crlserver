@@ -82,9 +82,59 @@ form_release(FORM *form) {
 }
 
 static void
+editors_menu(games_list *glp) {
+	char path[MAXPATHLEN];
+	char* params[] = {"", ""};
+	struct list *lp;
+	int status = 0, ch = 0;
+	pid_t pid = 0;
+
+	memset(path, '\0', MAXPATHLEN);
+	(void)strlcpy(path, session.home, sizeof path);
+	(void)strlcat(path, "/.", sizeof path);
+	(void)strlcat(path, glp->name, sizeof path);
+	(void)strlcat(path, "rc", sizeof path);
+	params[1] = path;
+	do {
+		int i = 6;
+		print_file(CRLSERVER_MENUS_DIR"/banner.txt");
+		SLIST_FOREACH(lp, session.list[1], ls) {
+			mvprintw(i, 1, "%s) Edit with %s (%s %s)", lp->key, lp->name,
+					lp->lname, lp->version);
+			++i;
+		}
+		(void)mvaddstr(4, 1, "q) Quit");
+		(void)refresh();
+		ch = getch();
+		if (ch == 'q')
+			break;
+		SLIST_FOREACH(lp, session.list[1], ls) {
+			if (ch == lp->key[0]) {
+				(void)clear();
+				(void)refresh();
+				(void)endwin();
+				pid = fork();
+				if (pid < 0)
+					clean_up(1, "fork");
+				else if (pid == 0) {
+					params[0] = lp->path;
+					fprintf(stderr, "%s %s\n", params[0], params[1]);
+					execve(lp->path, params, session.env);
+					clean_up(1, "execve error");
+				}
+				else
+					waitpid(pid, &status, 0);
+				break;
+			}
+		}
+	} while (1);	
+}
+
+static void
 games_menu(games_list *glp) {
 	int status = 0, ch = 0;
 	pid_t pid = 0;
+	int configurable = has_config_file(glp);
 
 	do {
 		switch (ch) {
@@ -97,31 +147,38 @@ games_menu(games_list *glp) {
 			if (pid < 0)
 				clean_up(1, "fork");
 			else if (pid == 0) {
-				/* child */
 				execve(glp->path, glp->params, session.env);
 				clean_up(1, "execve error");
 			}
-			else /* parent */
+			else
 				waitpid(pid, &status, 0);
 			break;
 		case 'e':
 		case 'E':
-			scrmsg(14, 1, "Edit");
+			if (configurable == 0)
+				editors_menu(glp);
 			break;
 		default:
 			break;
 		}
 		print_file(CRLSERVER_MENUS_DIR"/games.txt");
+		if (configurable == 0)
+			mvprintw(5, 1,"%s", "e) Edit the configuration file");
+		refresh();
 	} while ((ch = getch()) != 'q');
 }
 
 static void
 user_menu(void) {
 	games_list_head gl_head = SLIST_HEAD_INITIALIZER(gl_head);
+	editors_list_head el_head = SLIST_HEAD_INITIALIZER(el_head);
 	games_list *glp;
 	int i, ch = 0;
 
 	load_folder(CRLSERVER_GAMES_DIR, &gl_head);
+	load_folder(CRLSERVER_EDITORS_DIR, &el_head);
+	session.list[0] = &gl_head;
+	session.list[1] = &el_head;
 
 	do {
 		i = 6;
@@ -144,6 +201,7 @@ user_menu(void) {
 		}
 	} while (1);
 	list_release(&gl_head);
+	list_release(&el_head);
 	free(session.name);
 	free(session.home);
 	free_env();

@@ -25,5 +25,6 @@ void init(void);
 void start_window(void);
 __inline void end_window(void);
 void free_env(void);
+int has_config_file(games_list *);
 
 #endif
