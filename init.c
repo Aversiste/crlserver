@@ -102,9 +102,10 @@ init_playground_files(const char *path) {
 		}
 		
 		while (feof(ifd) == 0) {
+			size_t s;
 			(void)memset(buf, '\0', 1024);
-			(void)fread(buf, 1, 1024, ifd);
-			(void)fwrite(buf, 1, 1024, ofd);
+			s = fread(buf, 1, 1024, ifd);
+			(void)fwrite(buf, 1, s, ofd);
 		}
 		if (fclose(ifd) != 0)
 			logmsg(strerror(errno));
