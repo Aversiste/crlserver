@@ -3,6 +3,3 @@
 #
 
 p) Play
-e) Edit the game configuration file
-
-q) Return to the previous menu
