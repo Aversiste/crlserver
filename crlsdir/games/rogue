@@ -1,7 +1,7 @@
 name=rogue
 longname=rogue-clone
 version=III
-description=Written by Tim Stoehr
+description=Written by Tim Stoehr. This game is the origin.
 key=r
 path=/usr/games/rogue
 params=

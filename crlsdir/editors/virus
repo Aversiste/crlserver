@@ -1,4 +1,6 @@
 name=virus
-description=VI bla bla
+longname=VI resembling utility skeleton
+description=A pure and minimalist VI implementation.
 version=0.0.2
 path=/home/xin/proj/meduse/virus/virus
+key=v
