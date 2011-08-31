@@ -63,6 +63,8 @@ print_file(const char *path) {
 		free(buf);
 		++y;
 	}
+	if (session.logged == 1)
+		mvprintw(LINES - 1, 1, "Logged in as: %s", session.name);
 	refresh();
 	(void)fclose(fd);
 }
