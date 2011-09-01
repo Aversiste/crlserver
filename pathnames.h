@@ -23,5 +23,6 @@
 #define CRLSERVER_MISC_DIR "crlsdir/misc"
 #define CRLSERVER_LOG_FILE "/tmp/crlserver.log"
 #define CRLSERVER_PLAYGROUND "/tmp/crlserver"
+#define CRLSERVER_USERDATA "/tmp/crlserver/userdata"
 
 #endif

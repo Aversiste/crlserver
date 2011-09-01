@@ -127,7 +127,7 @@ init_session(const char *name) {
 		fclean_up("Memory error");
 
 	(void)snprintf(path, sizeof path, "%s/%c/%s",
-		 CRLSERVER_PLAYGROUND, session.name[0], session.name);
+		 CRLSERVER_USERDATA, session.name[0], session.name);
 	session.home = strdup(path);
 	if (session.home == NULL)
 		fclean_up("Memory error");
@@ -146,7 +146,7 @@ init_session(const char *name) {
 
 int
 init_playground_dir(const char *player_name) {
-	char playground[MAXPATHLEN] = CRLSERVER_PLAYGROUND;
+	char playground[MAXPATHLEN] = CRLSERVER_USERDATA;
 
 	if (player_name == NULL)
 		return -1;
