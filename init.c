@@ -28,12 +28,12 @@
 #include <dirent.h>
 #include <err.h>
 #include <errno.h>
-#include <signal.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sysexits.h>
 #include <unistd.h>
 
+#include "aux.h"
 #include "crlserver.h"
 #include "db.h"
 #include "init.h"
@@ -42,24 +42,6 @@
 #include "session.h"
 
 struct session session;
-
-static void
-heed_signals(void) {
-	signal(SIGINT, byebye);
-	signal(SIGQUIT, byebye);
-	signal(SIGHUP, SIG_IGN);
-	signal(SIGTERM, SIG_IGN);
-	signal(SIGTSTP, SIG_IGN);
-}
-
-static void
-ignore_signals(void) {
-	signal(SIGINT, SIG_IGN);
-	signal(SIGQUIT, SIG_IGN);
-	signal(SIGHUP, SIG_IGN);
-	signal(SIGTERM, SIG_IGN);
-	signal(SIGTSTP, SIG_IGN);
-}
 
 void
 byebye(int unused) {

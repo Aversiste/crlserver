@@ -19,6 +19,7 @@
 #elif __Linux__
 # define __USE_BSD
 # define _BSD_SOURCE
+# include <bsd/bsd.h>
 # include "compat/util.h"
 #endif
 

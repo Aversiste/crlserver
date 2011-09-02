@@ -17,9 +17,10 @@
 #ifdef __OpenBSD__
 # include <util.h>
 #elif __Linux__
-# include "compat/util.h"
 # define _XOPEN_SOURCE
 # define _BSD_SOURCE
+# include <bsd/bsd.h>
+# include "compat/util.h"
 #endif
 
 #include <sys/param.h>
@@ -27,7 +28,6 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-#include <ctype.h>
 #include <curses.h>
 #include <err.h>
 #include <form.h>
@@ -35,6 +35,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "aux.h"
 #include "crlserver.h"
 #include "conf.h"
 #include "db.h"
@@ -43,8 +44,6 @@
 #include "menus.h"
 #include "pathnames.h"
 #include "session.h"
-
-#define CRLS_MAXNAMELEN 20
 
 void
 print_file(const char *path) {
@@ -270,16 +269,13 @@ form_navigation(FORM **form) {
 
 static char *
 field_sanitize(const FIELD *field) {
-	char *c = NULL;
 	char *s = field_buffer(field, 0);
 
 	if (s == NULL) {
 		scrmsg(14, 1, "A field is missing\n");
 		return NULL;
 	}
-	c = strchr(s, ' ');
-	if (c != NULL)
-		*c = '\0';
+	trim(&s);
 	if (strlen(s) < 1) {
 		scrmsg(14, 1, "A field is missing\n");
 		return NULL;
@@ -382,8 +378,8 @@ register_menu(void) {
 		goto clean;
 	}
 	for (i = 0; user[i] != '\0'; ++i) {
-		if (isalnum(user[i]) == 0) {
-			scrmsg(14, 1, "Only ascii in the username");
+		if (isokay(user[i]) == 0) {
+			scrmsg(14, 1, "Only ascii alpha numerics in the username");
 			goto clean;
 		}
 	}

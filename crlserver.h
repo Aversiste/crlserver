@@ -7,6 +7,7 @@
 #define CRLSERVER_DEFAULT_TERM "xterm"
 #define CRLSERVER_MAX_ENV_LENGTH 10
 #define CRLSERVER_MAX_PARAMS_LENGTH 10
+#define CRLS_MAXNAMELEN 20
 
 #include "session.h"
 extern struct session session;

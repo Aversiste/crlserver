@@ -14,19 +14,15 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include "conf.h"
+#ifndef CRLSERER_AUX_H__
+#define CRLSERER_AUX_H__
 
-#ifndef INIT_H_
-#define INIT_H_
-
-void byebye(int);
-int init_playground_files(const char *);
-int init_playground_dir(const char *);
-int init_session(const char *);
-void init(void);
-void start_window(void);
-__inline void end_window(void);
-void free_env(void);
-int has_config_file(games_list *);
+__inline int isokay(int);
+void rtrim(char *);
+void ltrim(char **);
+void trim(char **);
+char *escape_space(char *);
+void ignore_signals(void);
+void heed_signals(void);
 
 #endif

@@ -30,6 +30,12 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifdef __Linux__
+# define __USE_BSD
+# define _BSD_SOURCE
+# include <bsd/bsd.h>
+#endif
+
 #include <sys/cdefs.h>
 
 #include <stdio.h>
