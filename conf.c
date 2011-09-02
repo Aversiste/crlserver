@@ -54,7 +54,7 @@ static void
 store_in_array(char *src, char **a, const int begin, const int end) {
 	int i = begin;
 
-	for (; i < end && a[i] != NULL; ++i) {
+	for (; i < end; ++i) {
 		char *token, *bp;
 
 		if (a[i] != NULL)
