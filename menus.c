@@ -165,6 +165,7 @@ games_menu(games_list *glp) {
 		print_file(CRLSERVER_MENUS_DIR"/games.txt");
 		if (configurable == 0)
 			mvprintw(5, 1,"%s", "e) Edit the configuration file");
+		mvprintw(7, 1,"%s", glp->desc);
 		refresh();
 	} while ((ch = getch()) != 'q');
 }
