@@ -135,10 +135,10 @@ init_playground_dir(const char *player_name) {
 
 	(void)strlcat(playground, "/", sizeof playground);
 	(void)strncat(playground, player_name, 1);
-	(void)mkdir(playground, 0700);
+	(void)mkdir(playground, 0744);
 	(void)strlcat(playground, "/", sizeof playground);
 	(void)strlcat(playground, player_name, sizeof playground);
-	(void)mkdir(playground, 0700);
+	(void)mkdir(playground, 0744);
 
 	if (access(playground, F_OK) == -1)
 		return -1;
