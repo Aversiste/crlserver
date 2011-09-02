@@ -39,6 +39,8 @@ rtrim(char *s) {
 	char *c;
 
 	c = strchr(s, ' ');
+	if (c == NULL)
+		return;
 	for (; *c != '\0' && *(c+1) != '\0'; ++c)
 		if (*c == ' ' && *(c + 1) == ' ')
 			*c = '\0';
