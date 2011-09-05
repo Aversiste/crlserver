@@ -7,4 +7,5 @@ e-mail:         [                    ]
 password:       [                    ]
 password (re):  [                    ]
 
-Cycle with TAB and validate with ENTER
+Cycle with 'TAB' or 'Arrows Keys' and validate with 'ENTER'.
+You can escape at any moment with 'Escape'.
