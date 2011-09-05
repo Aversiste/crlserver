@@ -20,6 +20,11 @@
 #ifndef MENU_H_
 #define MENU_H_
 
+typedef int tribool;
+#define TB_UNDEFINED 0
+#define TB_TRUE 1
+#define TB_FALSE -1
+
 void menus(void);
 
 #endif

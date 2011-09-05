@@ -216,13 +216,13 @@ server_info(void) {
 	getch();
 }
 
-static void
+static int
 form_navigation(FORM **form) {
-	bool quit = false;
+	tribool quit = 0;
 	unsigned int ch = 0;
 
 	(void)curs_set(1); /* Print the cursor */
-	(void)move(4, 18); /* This is too arbitrary */
+	(void)move(4, 18); /* XXX: This is too arbitrary */
 	do {
 		ch = getch();
 		switch(ch) {
@@ -245,7 +245,7 @@ form_navigation(FORM **form) {
 			(void)form_driver(*form, REQ_DEL_CHAR);
 			break;
 		case KEY_BACKSPACE:
-		case 127:
+		case 127: /* An other backspace */
 			(void)form_driver(*form, REQ_DEL_PREV);
 			break;
 		case KEY_HOME:
@@ -258,14 +258,18 @@ form_navigation(FORM **form) {
 		case '\n':
 		case '\r':
 			(void)form_driver(*form, REQ_VALIDATION);
-			quit = true;		
+			quit = TB_TRUE;
+			break;
+		case 27: /* Escape */
+			quit = TB_FALSE;
 			break;
 		default:
 			(void)form_driver(*form, ch);
 			break;
 		}
-	} while(quit == false);
+	} while(quit == TB_UNDEFINED);
 	(void)curs_set(0); /* Remove the cursor */
+	return quit;
 }
 
 static char *
@@ -306,7 +310,9 @@ login_menu(void) {
 	print_file(CRLSERVER_MENUS_DIR"/login.txt");
 	(void)refresh();
 
-	form_navigation(&form);
+	if (form_navigation(&form) == -1)
+		goto clean;
+
 	user = field_sanitize(fields[0]);
 	pass = field_sanitize(fields[1]);
 
@@ -359,7 +365,8 @@ register_menu(void) {
 	print_file(CRLSERVER_MENUS_DIR"/register.txt");
 	(void)refresh();
 
-	form_navigation(&form);
+	if (form_navigation(&form) == -1)
+		goto clean;
 	
 	/* Get the input with trimed whitespaces */
 	user = field_sanitize(fields[0]);
