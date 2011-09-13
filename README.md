@@ -1,7 +1,7 @@
 crlserver
 =========
 
-crlserver is roguelike server in the spirit of dgamelaunch, but it
+crlserver is a roguelike server in the spirit of dgamelaunch, but it
 manages users logins and scores for far more than just nethack.
 
 It uses a little configuration file to launch the games, so you can
@@ -20,6 +20,13 @@ TODO:
  * Use of yacc/lex for configuration file parsing.
  * Support of ttyrec for games record.
  * Support of ttyplay for real time games watching.
+
+Contribution
+------------
+There is an important thing to understand if you want to contribute :<br />
+I **only** accept ISC licensed patches. No GPL !
+
+Remember that your patches are your own intellectual properties.
 
 How to setup ?
 --------------
