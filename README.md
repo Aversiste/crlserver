@@ -44,7 +44,7 @@ Hey, just add the configuration file for it.
 It's simple.
 
 This is the rogue one :
-    [xin@ronnie:crlserver][14:19][18]cat /var/games/crlsdir/games/rogue 
+
     name=rogue
     longname=rogue-clone
     version=III
