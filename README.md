@@ -55,3 +55,13 @@ This is the rogue one :
     env=ROGUEOPTS=name=%user%
 
 The params and env keywords are optionals.
+
+I'm on Windows and I want to run crlserver.
+-------------------------------------------
+Windows is not supported and not a targeted platform.<br />
+It's designed to work on Unix-like systems.
+
+So, it won't work on my VMS?
+----------------------------
+Yes. But if I have access to a (Open)VMS box, I can try to officially
+port crlserver.
