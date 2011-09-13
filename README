@@ -27,8 +27,15 @@ How to setup ?
 Fetch the code and use BSDmakefile or GNUmakefile, depending on your
 working environment.
 
-If you an error or even a little warning, mail me or fork and patch it.
-crlserver is actualy known to run and work fine on Ubuntu and OpenBSD.
+You have to edit pathnames.h if you want to change path for files or folders.
+
+Add a user 'crls' and give it crlserver as login shell.
+Now, setup a ssh server, and *tada*, it works.
+
+If you have an error or even a little warning, mail me (or fork and patch it).
+
+crlserver is actualy known to run and work fine on Ubuntu and OpenBSD,
+help us to run everywhere :)
 
 Why X, my favorite roguelike, is not supported ?
 ------------------------------------------------
