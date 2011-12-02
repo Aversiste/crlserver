@@ -39,9 +39,6 @@
 #include "db.h"
 #include "pathnames.h"
 
-extern games_list_head glh;
-extern editors_list_head elh;
-
 int
 has_config_file(games_list *glp) {
 	char path[MAXPATHLEN];
@@ -93,7 +90,6 @@ form_release(FORM *form) {
 		(void)free_field(fields[i]);
 }
 
-/*
 static void
 editors_menu(games_list *glp) {
 	char path[MAXPATHLEN];
@@ -142,7 +138,6 @@ editors_menu(games_list *glp) {
 		}
 	} while (1);	
 }
-*/
 
 static void
 games_menu(games_list *glp) {
@@ -152,6 +147,7 @@ games_menu(games_list *glp) {
 
 	do {
 		switch (ch) {
+		/*
 		case 'p':
 		case 'P':
 			(void)clear();
@@ -167,7 +163,7 @@ games_menu(games_list *glp) {
 			else
 				waitpid(pid, &status, 0);
 			break;
-/*		case 'e':
+		case 'e':
 		case 'E':
 			if (configurable == 0)
 				editors_menu(glp);
@@ -201,21 +197,19 @@ user_menu(void) {
 		ch = getch();
 		if (ch == 'q')
 			break;
-		/*
 		SLIST_FOREACH(glp, &glh, ls) {
 			if (ch == glp->key) {
 				games_menu(glp);
 				break;
 			}
 		}
-		*/
 	} while (1);
-	/*
+	session.logged = 0;
 	free(session.name);
 	free(session.home);
+	/*
 	free_env();
 	*/
-	session.logged = 0;
 }
 
 __inline void
