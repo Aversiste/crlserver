@@ -133,12 +133,14 @@ parse_var_array(char **p, const char *fnm, int *linep) {
 	array = calloc(10, sizeof(*array));
 	if (array == NULL)
 		errx(1, "calloc");
+
 	for (i = 0; i < 10; ++i) {
 		value = parse_var_string(*p, fnm, linep);
 		*p += strlen(value) + 2;
 		array[i] = strdup(value);
 		if (array[i] == NULL)
 			errx(1, "calloc");
+		array[i + 1] = NULL;
 
 		*p = parse_space(*p);
 
@@ -488,6 +490,7 @@ main(void) {
 void
 list_release(struct list_head *lh) {
 	struct list *lp;
+
 	while (!SLIST_EMPTY(lh)) {
 		unsigned int i;
 		lp = SLIST_FIRST(lh);
@@ -498,8 +501,17 @@ list_release(struct list_head *lh) {
 		free(lp->version);
 		free(lp->desc);
 		free(lp->path);
-		for (i = 0; lp->params[i] != NULL; ++i) 
+		
+		if (lp->params == NULL)
+			goto env;
+		for (i = 0; lp->params[i] != NULL; ++i)
 			free(lp->params[i]);
+
+env:
+		if (lp->env == NULL)
+			return;
+		for (i = 0; lp->env[i] != NULL; ++i) 
+			free(lp->env[i]);
 		free(lp);
 	}
 }
