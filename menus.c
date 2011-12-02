@@ -185,11 +185,11 @@ games_menu(games_list *glp) {
 
 static void
 user_menu(void) {
-	games_list *glp;
-	int i, ch = 0;
-
 	do {
-		i = 6;
+		games_list *glp;
+		int i = 6;
+		int ch = 0;
+
 		print_file(CRLSERVER_MENUS_DIR"/banner.txt");
 		SLIST_FOREACH(glp, &glh, ls) {
 			mvprintw(i, 1, "%c) %s - %s (%s)", glp->key, glp->name,
@@ -201,18 +201,20 @@ user_menu(void) {
 		ch = getch();
 		if (ch == 'q')
 			break;
+		/*
 		SLIST_FOREACH(glp, &glh, ls) {
 			if (ch == glp->key) {
 				games_menu(glp);
 				break;
 			}
 		}
+		*/
 	} while (1);
-	list_release(&glh);
-	list_release(&elh);
+	/*
 	free(session.name);
 	free(session.home);
 	free_env();
+	*/
 	session.logged = 0;
 }
 
@@ -431,11 +433,11 @@ menus(void) {
 			break;
 		case 'q':
 		case 'Q':
-			fclean_up("Good Bye");
-			break;
+			return;
 		default:
 			break;
 		}
 		print_file(CRLSERVER_MENUS_DIR"/general.txt");
 	} while ((c = getch()) != 'q');
 }
+
