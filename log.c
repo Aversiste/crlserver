@@ -29,11 +29,10 @@
 #include "init.h"
 #include "pathnames.h"
 
-extern char *__progname;
-
 static void
 graceful_exit(int eval, const char *fmt, va_list ap, int flag) {
 	int	sverrno;
+	extern char *__progname;
 
 	sverrno = errno;
 
