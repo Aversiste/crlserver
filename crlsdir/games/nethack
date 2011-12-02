@@ -1,8 +1,0 @@
-name=nethack
-longname=NetHack
-version=3.4.3
-description=This is the vanilla version of NetHack
-key=n
-path=/usr/games/nethack
-params=-u %user%
-env=

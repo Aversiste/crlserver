@@ -1,8 +1,0 @@
-name=hack
-longname=hack
-version=1.0.3
-description=Hack was created in 1982 by Jay Fenlason. last edit Tue Jul 23 1985
-key=h
-path=/usr/games/hack
-params=-u %user%
-env=
