@@ -29,3 +29,4 @@ main(void) {
 	end_window();
 	return (EX_OK);
 }
+
