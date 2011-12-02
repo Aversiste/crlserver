@@ -14,8 +14,6 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include "conf.h"
-
 #ifndef INIT_H_
 #define INIT_H_
 
