@@ -26,18 +26,18 @@ typedef struct list_head editors_list_head;
 typedef struct list games_list;
 typedef struct list editors_list;
 
-void load_folder(const char*, struct list_head*);
+void config(void);
 void list_release(struct list_head*);
-size_t list_size(struct list_head*);
 
 struct list {
 	char *name;
 	char *lname;
 	char *version;
 	char *desc;
-	char *key;
+	char key;
 	char *path;
-	char *params[CRLSERVER_MAX_PARAMS_LENGTH];
+	char **params;
+	char **env;
 	SLIST_ENTRY(list) ls;
 };
 

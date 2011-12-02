@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Tristan Le Guern <leguern@medu.se>
+ * Copyright (c) 2011 Tristan Le Guern <leguern AT medu.se>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -44,6 +44,9 @@
 #include "menus.h"
 #include "pathnames.h"
 #include "session.h"
+
+extern games_list_head glh;
+extern editors_list_head elh;
 
 void
 print_file(const char *path) {
@@ -110,7 +113,7 @@ editors_menu(games_list *glp) {
 		if (ch == 'q')
 			break;
 		SLIST_FOREACH(lp, session.list[1], ls) {
-			if (ch == lp->key[0]) {
+			if (ch == lp->key) {
 				(void)clear();
 				(void)refresh();
 				(void)endwin();
@@ -172,21 +175,17 @@ games_menu(games_list *glp) {
 
 static void
 user_menu(void) {
-	games_list_head gl_head = SLIST_HEAD_INITIALIZER(gl_head);
-	editors_list_head el_head = SLIST_HEAD_INITIALIZER(el_head);
 	games_list *glp;
 	int i, ch = 0;
 
-	load_folder(CRLSERVER_GAMES_DIR, &gl_head);
-	load_folder(CRLSERVER_EDITORS_DIR, &el_head);
-	session.list[0] = &gl_head;
-	session.list[1] = &el_head;
+	session.list[0] = &glh;
+	session.list[1] = &elh;
 
 	do {
 		i = 6;
 		print_file(CRLSERVER_MENUS_DIR"/banner.txt");
-		SLIST_FOREACH(glp, &gl_head, ls) {
-			mvprintw(i, 1, "%s) %s - %s (%s)", glp->key, glp->name,
+		SLIST_FOREACH(glp, &glh, ls) {
+			mvprintw(i, 1, "%c) %s - %s (%s)", glp->key, glp->name,
 					glp->lname, glp->version);
 			++i;
 		}
@@ -195,15 +194,15 @@ user_menu(void) {
 		ch = getch();
 		if (ch == 'q')
 			break;
-		SLIST_FOREACH(glp, &gl_head, ls) {
-			if (ch == glp->key[0]) {
+		SLIST_FOREACH(glp, &glh, ls) {
+			if (ch == glp->key) {
 				games_menu(glp);
 				break;
 			}
 		}
 	} while (1);
-	list_release(&gl_head);
-	list_release(&el_head);
+	list_release(&glh);
+	list_release(&elh);
 	free(session.name);
 	free(session.home);
 	free_env();

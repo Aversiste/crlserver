@@ -18,11 +18,13 @@
 #include <sysexits.h>
 
 #include "init.h"
+#include "conf.h"
 #include "menus.h"
 
 int
 main(void) {
 	init();
+	config();
 	menus();
 	end_window();
 	return (EX_OK);
