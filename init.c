@@ -41,8 +41,6 @@
 #include "pathnames.h"
 #include "session.h"
 
-struct session session;
-
 void
 byebye(int unused) {
 	unused = 0;
@@ -163,7 +161,10 @@ init(void) {
 	(void)curs_set(0);
 	start_window();
 
-	/* A lot of games ask this size, so check it now. */
+	/*
+	 * A lot of games ask this size, so check it now.
+	 * We don't care of later window resizing.
+	 */
 	if ((LINES < DROWS) || (COLS < DCOLS))
 		fclean_up("must be displayed on 24 x 80 screen (or larger)");
 
@@ -195,16 +196,3 @@ free_env(void) {
 	}
 }
 
-int
-has_config_file(games_list *glp) {
-	char path[MAXPATHLEN];
-	
-	memset(path, '\0', MAXPATHLEN);
-	(void)strlcpy(path, session.home, sizeof path);
-	(void)strlcat(path, "/.", sizeof path);
-	(void)strlcat(path, glp->name, sizeof path);
-	(void)strlcat(path, "rc", sizeof path);
-	if (access(path, R_OK) == 0)
-		return 0;
-	return -1;
-}

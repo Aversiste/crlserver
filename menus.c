@@ -48,6 +48,20 @@
 extern games_list_head glh;
 extern editors_list_head elh;
 
+int
+has_config_file(games_list *glp) {
+	char path[MAXPATHLEN];
+	
+	memset(path, '\0', MAXPATHLEN);
+	(void)strlcpy(path, session.home, sizeof path);
+	(void)strlcat(path, "/.", sizeof path);
+	(void)strlcat(path, glp->name, sizeof path);
+	(void)strlcat(path, "rc", sizeof path);
+	if (access(path, R_OK) == 0)
+		return 0;
+	return -1;
+}
+
 void
 print_file(const char *path) {
 	FILE *fd = fopen(path, "r");
@@ -217,7 +231,7 @@ server_info(void) {
 
 static int
 form_navigation(FORM **form) {
-	tribool quit = 0;
+	int quit = 0;
 	unsigned int ch = 0;
 
 	(void)curs_set(1); /* Print the cursor */
@@ -257,16 +271,16 @@ form_navigation(FORM **form) {
 		case '\n':
 		case '\r':
 			(void)form_driver(*form, REQ_VALIDATION);
-			quit = TB_TRUE;
+			quit = 1;
 			break;
 		case 27: /* Escape */
-			quit = TB_FALSE;
+			quit = -1;
 			break;
 		default:
 			(void)form_driver(*form, ch);
 			break;
 		}
-	} while(quit == TB_UNDEFINED);
+	} while(quit == 0);
 	(void)curs_set(0); /* Remove the cursor */
 	return quit;
 }
