@@ -4,9 +4,6 @@ crlserver
 crlserver is a roguelike server in the spirit of dgamelaunch, but it
 manages users logins and scores for far more than just nethack.
 
-It uses a little configuration file to launch the games, so you can
-extend it without any recompilation, contrary to dgamelaunch.
-
 Feature:
 
  * It's free, no cost and GPL'ed.
@@ -17,9 +14,9 @@ Feature:
 
 TODO:
 
- * Use of yacc/lex for configuration file parsing.
  * Support of ttyrec for games record.
  * Support of ttyplay for real time games watching.
+ * Configurable menus via the configuration file, like dgamelaunch does.
 
 Contribution
 ------------
@@ -67,8 +64,3 @@ I'm on Windows and I want to run crlserver.
 -------------------------------------------
 Windows is not supported and not a targeted platform.<br />
 It's designed to work on Unix-like systems.
-
-So, it won't work on my VMS?
-----------------------------
-Yes. But if I have access to a (Open)VMS box, I can try to officially
-port crlserver.
