@@ -54,7 +54,8 @@ ltrim(char **s) {
 	*s = (*s)+i;
 }
 
-void trim(char **s) {
+void
+trim(char **s) {
 	ltrim(s);
 	rtrim(*s);
 }
@@ -96,3 +97,4 @@ escape_space(char *s) {
 	ret = strdup(buf);
 	return ret;
 }
+
