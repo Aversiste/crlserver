@@ -90,6 +90,7 @@ form_release(FORM *form) {
 		(void)free_field(fields[i]);
 }
 
+/*
 static void
 editors_menu(games_list *glp) {
 	char path[MAXPATHLEN];
@@ -138,6 +139,7 @@ editors_menu(games_list *glp) {
 		}
 	} while (1);	
 }
+*/
 
 static void
 games_menu(games_list *glp) {
