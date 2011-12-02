@@ -113,10 +113,11 @@ init_session(const char *name) {
 		return -1;
 	}
 
-	session.env[0] = "TERM="CRLSERVER_DEFAULT_TERM;
+	/*session.env[0] = "TERM="CRLSERVER_DEFAULT_TERM;
 	(void)strlcat(home, session.home, sizeof home);
 	if ((session.env[1] = strdup(home)) == NULL)
 		fclean_up("Memory error");
+	*/
 	return 0;
 }
 
@@ -167,7 +168,7 @@ init(void) {
 	session.logged = 0;
 	session.name = NULL;
 	session.home = NULL;
-	memset(session.env, '\0', sizeof session.env / sizeof session.env[0]);
+	session.env = NULL;
 }
 
 void
