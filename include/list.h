@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Tristan Le Guern <leguern@medu.se>
+ * Copyright (c) 2011 Tristan Le Guern <leguern AT medu.se>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,16 +14,28 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <stdarg.h>
+#include <sys/queue.h>
 
-#ifndef LOG_H__
-#define LOG_H__
+#ifndef LIST_H__
+#define LIST_H__
 
-void clean_up(int, const char *, ...);
-void clean_upx(int, const char *, ...);
-void fclean_up(const char *);
+SLIST_HEAD(list_head, list);
+typedef struct list_head games_list_head;
+typedef struct list_head editors_list_head;
+typedef struct list games_list;
+typedef struct list editors_list;
 
-void logmsg(const char *, ...);
-void scrmsg(int, int, const char *);
+struct list {
+	char *name;
+	char *lname;
+	char *version;
+	char *desc;
+	char key;
+	char *path;
+	char **params;
+	char **env;
+	SLIST_ENTRY(list) ls;
+};
 
 #endif
+

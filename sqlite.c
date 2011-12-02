@@ -22,8 +22,6 @@
 
 #include "crlserver.h"
 #include "db.h"
-#include "init.h"
-#include "log.h"
 
 static int
 user_exist_callback() {

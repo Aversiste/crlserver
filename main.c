@@ -17,9 +17,7 @@
 #include <stdlib.h>
 #include <sysexits.h>
 
-#include "init.h"
-#include "conf.h"
-#include "menus.h"
+#include "crlserver.h"
 
 int
 main(void) {

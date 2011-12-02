@@ -3,7 +3,7 @@
 #	SQLITE_FLAVOR = Compile with support for sqlite. It's actualy required.
 
 PROG =		crlserver
-SRCS =		main.c conf.c init.c menus.c sqlite.c log.c aux.c
+SRCS =		main.c conf.c init.c menus.c sqlite.c log.c aux.c extern.c
 OSTYPE !=	uname -s
 
 CC ?=		gcc

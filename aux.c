@@ -24,8 +24,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "aux.h"
-#include "init.h"
+#include "crlserver.h"
 
 __inline int
 isokay(int c) {

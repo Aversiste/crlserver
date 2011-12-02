@@ -33,13 +33,9 @@
 #include <sysexits.h>
 #include <unistd.h>
 
-#include "aux.h"
 #include "crlserver.h"
 #include "db.h"
-#include "init.h"
-#include "log.h"
 #include "pathnames.h"
-#include "session.h"
 
 void
 byebye(int unused) {

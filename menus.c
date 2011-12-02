@@ -35,15 +35,9 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "aux.h"
 #include "crlserver.h"
-#include "conf.h"
 #include "db.h"
-#include "init.h"
-#include "log.h"
-#include "menus.h"
 #include "pathnames.h"
-#include "session.h"
 
 extern games_list_head glh;
 extern editors_list_head elh;
@@ -99,6 +93,7 @@ form_release(FORM *form) {
 		(void)free_field(fields[i]);
 }
 
+/*
 static void
 editors_menu(games_list *glp) {
 	char path[MAXPATHLEN];
@@ -147,6 +142,7 @@ editors_menu(games_list *glp) {
 		}
 	} while (1);	
 }
+*/
 
 static void
 games_menu(games_list *glp) {
@@ -171,11 +167,11 @@ games_menu(games_list *glp) {
 			else
 				waitpid(pid, &status, 0);
 			break;
-		case 'e':
+/*		case 'e':
 		case 'E':
 			if (configurable == 0)
 				editors_menu(glp);
-			break;
+			break; */
 		default:
 			break;
 		}
@@ -191,9 +187,6 @@ static void
 user_menu(void) {
 	games_list *glp;
 	int i, ch = 0;
-
-	session.list[0] = &glh;
-	session.list[1] = &elh;
 
 	do {
 		i = 6;

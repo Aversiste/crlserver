@@ -26,7 +26,6 @@
 #include <sysexits.h>
 
 #include "crlserver.h"
-#include "init.h"
 #include "pathnames.h"
 
 static void
