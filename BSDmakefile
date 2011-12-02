@@ -8,8 +8,8 @@ OSTYPE !=	uname -s
 
 CC ?=		gcc
 CFLAGS +=	-Wall -Wextra -ansi -pedantic -I/usr/local/include
-CFLAGS += 	-g
 CFLAGS +=	-D__${OSTYPE}__ -DSQLITE_FLAVOR
+CFLAGS += 	-I./include
 LDFLAGS +=	-L/usr/local/lib -lcurses -lutil -lsqlite3 -lform
 
 NOMAN=1
