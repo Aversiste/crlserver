@@ -90,7 +90,6 @@ form_release(FORM *form) {
 		(void)free_field(fields[i]);
 }
 
-/*
 static void
 editors_menu(games_list *glp) {
 	char path[MAXPATHLEN];
@@ -99,17 +98,19 @@ editors_menu(games_list *glp) {
 	int status = 0, ch = 0;
 	pid_t pid = 0;
 
-	memset(path, '\0', MAXPATHLEN);
+	logmsg("%s\n", glp->name);
+	(void)memset(path, '\0', MAXPATHLEN);
 	(void)strlcpy(path, session.home, sizeof path);
 	(void)strlcat(path, "/.", sizeof path);
 	(void)strlcat(path, glp->name, sizeof path);
 	(void)strlcat(path, "rc", sizeof path);
 	params[1] = path;
+	logmsg("%s\n", path);
 	do {
 		int i = 6;
 		print_file(CRLSERVER_MENUS_DIR"/banner.txt");
-		SLIST_FOREACH(lp, session.list[1], ls) {
-			mvprintw(i, 1, "%s) Edit with %s (%s %s)", lp->key, lp->name,
+		SLIST_FOREACH(lp, &elh, ls) {
+			(void)mvprintw(i, 1, "%c) Edit with %s (%s %s)", lp->key, lp->name,
 					lp->lname, lp->version);
 			++i;
 		}
@@ -118,7 +119,8 @@ editors_menu(games_list *glp) {
 		ch = getch();
 		if (ch == 'q')
 			break;
-		SLIST_FOREACH(lp, session.list[1], ls) {
+		/*
+		SLIST_FOREACH(lp, &elh, ls) {
 			if (ch == lp->key) {
 				(void)clear();
 				(void)refresh();
@@ -137,9 +139,9 @@ editors_menu(games_list *glp) {
 				break;
 			}
 		}
+		*/
 	} while (1);	
 }
-*/
 
 static void
 games_menu(games_list *glp) {
@@ -165,11 +167,12 @@ games_menu(games_list *glp) {
 			else
 				waitpid(pid, &status, 0);
 			break;
+		*/
 		case 'e':
 		case 'E':
 			if (configurable == 0)
 				editors_menu(glp);
-			break; */
+			break;
 		default:
 			break;
 		}
