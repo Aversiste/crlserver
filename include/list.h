@@ -32,8 +32,8 @@ struct list {
 	char *desc;
 	char key;
 	char *path;
-	char **params;
-	char **env;
+	char *params[10];
+	char *env[10];
 	SLIST_ENTRY(list) ls;
 };
 

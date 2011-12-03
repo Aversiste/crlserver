@@ -98,14 +98,12 @@ editors_menu(games_list *glp) {
 	int status = 0, ch = 0;
 	pid_t pid = 0;
 
-	logmsg("%s\n", glp->name);
 	(void)memset(path, '\0', MAXPATHLEN);
 	(void)strlcpy(path, session.home, sizeof path);
 	(void)strlcat(path, "/.", sizeof path);
 	(void)strlcat(path, glp->name, sizeof path);
 	(void)strlcat(path, "rc", sizeof path);
 	params[1] = path;
-	logmsg("%s\n", path);
 	do {
 		int i = 6;
 		print_file(CRLSERVER_MENUS_DIR"/banner.txt");

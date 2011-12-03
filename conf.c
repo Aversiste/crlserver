@@ -116,7 +116,7 @@ parse_var_string(char *p, const char *fnm, int *linep) {
 	value = strdup(buf);
 	if (value == NULL)
 		errx(1, "strdup");
-
+	logmsg("%s:+-> [%s]\n", fnm, value);
 	/* and end with an other '"' */
 	if (*p != '"')
 		errx(1, "%s:%d: invalid string value \"%s\"", 
@@ -124,37 +124,34 @@ parse_var_string(char *p, const char *fnm, int *linep) {
 	return value;
 }
 
-static char **
-parse_var_array(char **p, const char *fnm, int *linep) {
+static char *
+parse_var_array(char **p, char *fnm, int *linep) {
 	char *value;
-	char **array;
-	int i;
+	static int end;
 
-	array = calloc(10, sizeof(*array));
-	if (array == NULL)
-		errx(1, "calloc");
-
-	for (i = 0; i < 10; ++i) {
-		value = parse_var_string(*p, fnm, linep);
-		*p += strlen(value) + 2;
-		array[i] = strdup(value);
-		if (array[i] == NULL)
-			errx(1, "calloc");
-		array[i + 1] = NULL;
-
-		*p = parse_space(*p);
-
-		/* no coma mean that we are at the end of the declaration */
-		if (**p != ',')
-			break;
-		++*p;
-		*p = parse_space(*p);
-		if (**p == '#')
-			*p = parse_space(parse_walk_next_line(*p));
+	if (end == 1) {
+		end = 0;
+		return NULL;
 	}
-	if (i == 10)
-		errx(1, "too much elements in array");
-	return array;
+
+	value = parse_var_string(*p, fnm, linep);
+	*p += strlen(value) + 2;
+
+	*p = parse_space(*p);
+
+	/* no coma mean that we are at the end of the declaration */
+	if (**p != ',') {
+		end = 1;
+		logmsg("%s:  +-> [%s] (last)\n", fnm, value);
+		return value;
+	}
+	
+	++*p;
+	*p = parse_space(*p);
+	if (**p == '#')
+		*p = parse_space(parse_walk_next_line(*p));
+	logmsg("%s:  +-> [%s]\n", fnm, value);
+	return value;
 }
 
 static char
@@ -230,34 +227,40 @@ list_insert_string(struct list *lp, char *name, void *value) {
 }
 
 static void
-list_insert_array(struct list *lp, char *name, char **value) {
+list_insert_in_array(struct list *lp, char *name, char *value, int index) {
 	if (strncmp(name, "par", 3) == 0)
-		lp->params = (char **)value;
-	else if (strncmp(name, "env", 3) == 0)
-		lp->env = (char **)value;
+		lp->params[index] = value;
+	else if (strncmp(name, "env", 3) == 0) {
+		lp->env[index] = value;
+	}
 }
 
 static char *
 parse_value(char *buf, struct list *lp, int index, char *fnm, int *linep) {
 	char *p;
-	char cvalue;
-	char *svalue;
-	char **avalue;
+	char c;
+	char *str;
+	int i;
 
 	p = buf;
 	switch (varname[index].type) {
 	case Vstring:
-		svalue = parse_var_string(p, fnm, linep);
-		p += strlen(svalue) + 2;
-		list_insert_string(lp, varname[index].kw, svalue);
+		str = parse_var_string(p, fnm, linep);
+		p += strlen(str) + 2;
+		list_insert_string(lp, varname[index].kw, str);
 		break;
 	case Vchar:
-		cvalue = parse_var_char(&p, fnm, linep);
-		list_insert_string(lp, varname[index].kw, &cvalue);
+		c= parse_var_char(&p, fnm, linep);
+		list_insert_string(lp, varname[index].kw, &c);
 		break;
 	case Varray:
-		avalue = parse_var_array(&p, fnm, linep);
-		list_insert_array(lp, varname[index].kw, avalue);
+		for (i = 0; i < 10; ++i) {
+			str = parse_var_array(&p, fnm, linep);
+			logmsg("%s:    +-> [%s]\n", fnm, str);
+			list_insert_in_array(lp, varname[index].kw, str, i);
+			if (str == NULL)
+				break;
+		}
 		break;
 	case Vint:
 	case Vdouble:
