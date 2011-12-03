@@ -24,7 +24,7 @@
 # define db_update sqlite_update
 # define db_check_user sqlite_check_user
 
-# define CRLSERVER_SQLITE_DB "/tmp/crlserver.db"
+# define CRLSERVER_SQLITE_DB "./playground/crlserver.db"
 void sqlite_init(void);
 void sqlite_insert(const char *, const char *, const char *);
 void sqlite_update(unsigned int, const char *, const char *, const char *);

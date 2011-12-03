@@ -19,8 +19,8 @@
 
 #define CRLSERVER_MENUS_DIR "crlsdir/menus"
 #define CRLSERVER_MISC_DIR "crlsdir/misc"
-#define CRLSERVER_LOG_FILE "/tmp/crlserver.log"
-#define CRLSERVER_PLAYGROUND "/tmp/crlserver"
-#define CRLSERVER_USERDATA "/tmp/crlserver/userdata"
+#define CRLSERVER_LOG_FILE "../playground/crlserver.log"
+#define CRLSERVER_PLAYGROUND "./playground"
+#define CRLSERVER_USERDATA "./playground/userdata"
 
 #endif
