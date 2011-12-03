@@ -96,7 +96,6 @@ init_playground_files(const char *path) {
 int
 init_session(const char *name) {
 	char path[MAXPATHLEN];
-	char home[MAXPATHLEN + 5] = "HOME=";
 
 	session.name = strdup(name);
 	if (session.name == NULL)
