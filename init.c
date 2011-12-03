@@ -49,7 +49,7 @@ byebye(int unused) {
 int
 init_playground_files(const char *path) {
 	struct dirent* dp;
-	const char *misc = CRLSERVER_MISC_DIR;
+	const char *misc = CRLSERVER_CONFIG_DIR"/misc";
 	DIR* dir = opendir(misc);
 
 	if (dir == NULL)
@@ -103,7 +103,8 @@ init_session(const char *name) {
 
 	(void)memset(path, 0, sizeof path);
 	(void)snprintf(path, sizeof path, "%s/%c/%s",
-		 CRLSERVER_USERDATA, session.name[0], session.name);
+		 CRLSERVER_PLAYGROUND"/userdata",
+		 session.name[0], session.name);
 
 	session.home = strdup(path);
 	if (session.home == NULL)
@@ -122,9 +123,10 @@ init_session(const char *name) {
 	return 0;
 }
 
+/* XXX: the name is not relevent */
 int
 init_playground_dir(const char *player_name) {
-	char playground[MAXPATHLEN] = CRLSERVER_USERDATA;
+	char playground[MAXPATHLEN] = CRLSERVER_PLAYGROUND"/userdata";
 
 	if (player_name == NULL)
 		return -1;

@@ -104,7 +104,7 @@ editors_menu(games_list *glp) {
 	(void)strlcat(rc_path, "rc", sizeof rc_path);
 	do {
 		int i = 6;
-		print_file(CRLSERVER_MENUS_DIR"/banner.txt");
+		print_file(CRLSERVER_CONFIG_DIR"/menus/banner.txt");
 		SLIST_FOREACH(lp, &elh, ls) {
 			(void)mvprintw(i, 1, "%c) Edit with %s (%s %s)",
 			lp->key, lp->name, lp->lname, lp->version);
@@ -187,7 +187,7 @@ games_menu(games_list *glp) {
 		default:
 			break;
 		}
-		print_file(CRLSERVER_MENUS_DIR"/games.txt");
+		print_file(CRLSERVER_CONFIG_DIR"/menus/games.txt");
 		if (configurable == 0)
 			mvprintw(5, 1,"%s", "e) Edit the configuration file");
 		mvprintw(7, 1,"%s", glp->desc);
@@ -202,7 +202,7 @@ user_menu(void) {
 		int i = 6;
 		int ch = 0;
 
-		print_file(CRLSERVER_MENUS_DIR"/banner.txt");
+		print_file(CRLSERVER_CONFIG_DIR"/menus/banner.txt");
 		SLIST_FOREACH(glp, &glh, ls) {
 			mvprintw(i, 1, "%c) %s - %s (%s)", glp->key, glp->name,
 					glp->lname, glp->version);
@@ -230,7 +230,7 @@ user_menu(void) {
 
 __inline void
 server_info(void) {
-	print_file(CRLSERVER_MENUS_DIR"/server_info.txt");
+	print_file(CRLSERVER_CONFIG_DIR"/menus/server_info.txt");
 	getch();
 }
 
@@ -325,7 +325,7 @@ login_menu(void) {
 	if (form == NULL)
 		clean_up(1, "login_menu");
 	(void)post_form(form);
-	print_file(CRLSERVER_MENUS_DIR"/login.txt");
+	print_file(CRLSERVER_CONFIG_DIR"/menus/login.txt");
 	(void)refresh();
 
 	if (form_navigation(&form) == -1)
@@ -390,7 +390,7 @@ register_menu(void) {
 	if (form == NULL)
 		clean_up(1, "register_menu");
 	(void)post_form(form);
-	print_file(CRLSERVER_MENUS_DIR"/register.txt");
+	print_file(CRLSERVER_CONFIG_DIR"/menus/register.txt");
 	(void)refresh();
 
 	if (form_navigation(&form) == -1)
@@ -457,7 +457,7 @@ menus(void) {
 		default:
 			break;
 		}
-		print_file(CRLSERVER_MENUS_DIR"/general.txt");
+		print_file(CRLSERVER_CONFIG_DIR"/menus/general.txt");
 	} while ((c = getch()) != 'q');
 }
 

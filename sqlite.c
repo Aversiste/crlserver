@@ -22,6 +22,7 @@
 
 #include "crlserver.h"
 #include "db.h"
+#include "pathnames.h"
 
 static int
 user_exist_callback() {
@@ -41,7 +42,7 @@ check_user_callback(void *pass, int argc, char **argv, char **colname) {
 	if (bpass == NULL ||
 	    strncmp(pass, bpass, strlen(pass)) != 0 ||
 	    strlen(bpass) != strlen(pass)) {
-		scrmsg(14, 1, "No match");
+		scrmsg(14, 1, "Wrong password");
 		return -1;
 	}
 
@@ -57,7 +58,8 @@ sqlite_cmd(char *query, int (*callback)(void *, int, char **, char **), void *fp
 	
 	/* XXX: It can be usefull to see why we can't open,
 		rather than exiting */
-	if (sqlite3_open(CRLSERVER_SQLITE_DB, &db) != SQLITE_OK) {
+	if (sqlite3_open(CRLSERVER_PLAYGROUND"/"CRLSERVER_DATABASE, &db) !=
+	    SQLITE_OK) {
 		sqlite3_free(query);
 		clean_up(1, "sqlite3_init");
 	}
