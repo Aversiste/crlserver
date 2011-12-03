@@ -23,6 +23,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
+#include <sys/param.h>
 
 #include <stdio.h>
 #include <string.h>
@@ -33,6 +34,7 @@
 #include <syslog.h>
 #include <errno.h>
 #include <err.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 #include "crlserver.h"
@@ -361,13 +363,16 @@ parse_block(char *buf, char *fnm, int *line) {
 	int index;
 	char *p = buf;
 	struct list *lp;
+	char home[MAXPATHLEN + 5];
 
 	/*
 	 * initialize the list
 	 */
+	snprintf(home, sizeof home, "HOME=%s", session.home);
 	lp = calloc(1, sizeof *lp);
 	lp->env[0] = strdup("TERM="CRLSERVER_DEFAULT_TERM); /* XXX */
-	lp->params[0] = NULL; /* XXX */
+	lp->env[1] = strdup(home); /* XXX */
+	lp->params[0] = NULL; /* we will push lp->path here before execve */
 
 	/* skip leading spaces */
 	p = parse_space(p);
@@ -535,7 +540,7 @@ list_release(struct list_head *lh) {
 		
 		if (lp->params == NULL)
 			goto env;
-		for (i = 0; lp->params[i] != NULL; ++i)
+		for (i = 1; lp->params[i] != NULL; ++i)
 			free(lp->params[i]);
 
 env:

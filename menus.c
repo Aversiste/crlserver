@@ -43,7 +43,7 @@ int
 has_config_file(games_list *glp) {
 	char path[MAXPATHLEN];
 	
-	memset(path, '\0', MAXPATHLEN);
+	(void)memset(path, '\0', MAXPATHLEN);
 	(void)strlcpy(path, session.home, sizeof path);
 	(void)strlcat(path, "/.", sizeof path);
 	(void)strlcat(path, glp->name, sizeof path);
@@ -123,18 +123,27 @@ editors_menu(games_list *glp) {
 
 				logmsg("%s edited %s with %s\n",
 				    session.name, rc_path, lp->path);
+				logmsg("%s home is set to %s\n",
+				    session.name, session.home);
+
+				lp->params[0] = lp->path;
+				if (lp->params[1] != NULL)
+					free(lp->params[1]);
+				lp->params[1] = strdup(rc_path);
+				if (lp->params[1] == NULL)
+					clean_upx(1, "memory error");
+
 				pid = fork();
 				if (pid < 0)
 					clean_up(1, "fork");
 				else if (pid == 0) {
-					/* avoid stupid segfault */
-					lp->params[0] = lp->path;
-					lp->params[1] = rc_path; /* XXX */
 					execve(lp->path, lp->params, lp->env);
 					clean_up(1, "execve error");
 				}
 				else
 					waitpid(pid, &status, 0);
+					(void)clear();
+					(void)refresh();
 				break;
 			}
 		}
@@ -156,12 +165,14 @@ games_menu(games_list *glp) {
 			(void)endwin();
 			logmsg("%s played %s\n",
 			    session.name, glp->path);
+			logmsg("%s home is set to %s\n",
+			    session.name, glp->env[1]);
+			glp->params[0] = glp->path;
 
 			pid = fork();
 			if (pid < 0)
 				clean_up(1, "fork");
 			else if (pid == 0) {
-				glp->params[0] = glp->path;
 				execve(glp->path, glp->params, glp->env);
 				clean_up(1, "execve error");
 			}
