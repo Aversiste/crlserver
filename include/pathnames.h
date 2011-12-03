@@ -19,7 +19,7 @@
 
 #define CRLSERVER_MENUS_DIR "crlsdir/menus"
 #define CRLSERVER_MISC_DIR "crlsdir/misc"
-#define CRLSERVER_LOG_FILE "../playground/crlserver.log"
+#define CRLSERVER_LOG_FILE "./playground/crlserver.log"
 #define CRLSERVER_PLAYGROUND "./playground"
 #define CRLSERVER_USERDATA "./playground/userdata"
 
