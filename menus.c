@@ -92,24 +92,22 @@ form_release(FORM *form) {
 
 static void
 editors_menu(games_list *glp) {
-	char path[MAXPATHLEN];
-	char* params[] = {"", ""};
+	char rc_path[MAXPATHLEN];
 	struct list *lp;
 	int status = 0, ch = 0;
 	pid_t pid = 0;
 
-	(void)memset(path, '\0', MAXPATHLEN);
-	(void)strlcpy(path, session.home, sizeof path);
-	(void)strlcat(path, "/.", sizeof path);
-	(void)strlcat(path, glp->name, sizeof path);
-	(void)strlcat(path, "rc", sizeof path);
-	params[1] = path;
+	(void)memset(rc_path, '\0', MAXPATHLEN);
+	(void)strlcpy(rc_path, session.home, sizeof rc_path);
+	(void)strlcat(rc_path, "/.", sizeof rc_path);
+	(void)strlcat(rc_path, glp->name, sizeof rc_path);
+	(void)strlcat(rc_path, "rc", sizeof rc_path);
 	do {
 		int i = 6;
 		print_file(CRLSERVER_MENUS_DIR"/banner.txt");
 		SLIST_FOREACH(lp, &elh, ls) {
-			(void)mvprintw(i, 1, "%c) Edit with %s (%s %s)", lp->key, lp->name,
-					lp->lname, lp->version);
+			(void)mvprintw(i, 1, "%c) Edit with %s (%s %s)",
+			lp->key, lp->name, lp->lname, lp->version);
 			++i;
 		}
 		(void)mvaddstr(4, 1, "q) Quit");
@@ -117,19 +115,22 @@ editors_menu(games_list *glp) {
 		ch = getch();
 		if (ch == 'q')
 			break;
-		/*
 		SLIST_FOREACH(lp, &elh, ls) {
 			if (ch == lp->key) {
 				(void)clear();
 				(void)refresh();
 				(void)endwin();
+
+				logmsg("%s edited %s with %s\n",
+				    session.name, rc_path, lp->path);
 				pid = fork();
 				if (pid < 0)
 					clean_up(1, "fork");
 				else if (pid == 0) {
-					params[0] = lp->path;
-					fprintf(stderr, "%s %s\n", params[0], params[1]);
-					execve(lp->path, params, session.env);
+					/* avoid stupid segfault */
+					lp->params[0] = lp->path;
+					lp->params[1] = rc_path; /* XXX */
+					execve(lp->path, lp->params, lp->env);
 					clean_up(1, "execve error");
 				}
 				else
@@ -137,7 +138,6 @@ editors_menu(games_list *glp) {
 				break;
 			}
 		}
-		*/
 	} while (1);	
 }
 
@@ -149,23 +149,25 @@ games_menu(games_list *glp) {
 
 	do {
 		switch (ch) {
-		/*
 		case 'p':
 		case 'P':
 			(void)clear();
 			(void)refresh();
 			(void)endwin();
+			logmsg("%s played %s\n",
+			    session.name, glp->path);
+
 			pid = fork();
 			if (pid < 0)
 				clean_up(1, "fork");
 			else if (pid == 0) {
-				execve(glp->path, glp->params, session.env);
+				glp->params[0] = glp->path;
+				execve(glp->path, glp->params, glp->env);
 				clean_up(1, "execve error");
 			}
 			else
 				waitpid(pid, &status, 0);
 			break;
-		*/
 		case 'e':
 		case 'E':
 			if (configurable == 0)
@@ -299,7 +301,7 @@ login_menu(void) {
 	FIELD *fields[3] = {0, 0, 0};
 	FORM  *form = NULL;
 	unsigned int i = 0;
-	char *user, *pass;
+	char *user, *pass; /* TODO: remove the password from memory */
 
 	for (; i < 2; ++i) {
 		fields[i] = new_field(1, CRLS_MAXNAMELEN, 4 + i, 18, 0, 0);
@@ -338,6 +340,8 @@ login_menu(void) {
 		goto clean;
 	}
 
+	/* Successful loin ! log it */
+	logmsg("%s successfully logged in\n", user);
 	(void)form_release(form);
 	user_menu();
 	return 0;

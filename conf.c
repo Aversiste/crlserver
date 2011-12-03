@@ -175,6 +175,7 @@ parse_var_char(char **p, const char *fnm, int *linep) {
 	if (**p != '\'')
 		errx(1, "%s:%d: invalid char format", fnm, *linep);
 	++*p;
+	logmsg("%s:+-> [%c]\n", fnm, *cstart);
 	return *cstart;
 }
 
@@ -254,9 +255,8 @@ parse_value(char *buf, struct list *lp, int index, char *fnm, int *linep) {
 		list_insert_string(lp, varname[index].kw, &c);
 		break;
 	case Varray:
-		for (i = 0; i < 10; ++i) {
+		for (i = 1; i < 10; ++i) {
 			str = parse_var_array(&p, fnm, linep);
-			logmsg("%s:    +-> [%s]\n", fnm, str);
 			list_insert_in_array(lp, varname[index].kw, str, i);
 			if (str == NULL)
 				break;
@@ -332,7 +332,6 @@ parse_blockname(char *p) {
 			break;
 	}
 
-	/*warnx("block %s", blockname[i]);*/
 	return i;
 }
 
@@ -341,6 +340,13 @@ parse_block(char *buf, char *fnm, int *line) {
 	int index;
 	char *p = buf;
 	struct list *lp;
+
+	/*
+	 * initialize the list
+	 */
+	lp = calloc(1, sizeof *lp);
+	lp->env[0] = strdup("TERM="CRLSERVER_DEFAULT_TERM); /* XXX */
+	lp->params[0] = NULL; /* XXX */
 
 	/* skip leading spaces */
 	p = parse_space(p);
@@ -366,7 +372,6 @@ parse_block(char *buf, char *fnm, int *line) {
 	if (blockname[index] == NULL)
 		errx(1, "%s:%d: bad block name", fnm, *line);
 	p += strlen(blockname[index]);
-	lp = calloc(1, sizeof *lp);
 
 	/* skip spaces */
 	p = parse_space(p);
@@ -449,6 +454,7 @@ config(void) {
 	if ((home = getenv("HOME")) == NULL)
 		home = "";
 
+	logmsg("Start configuration process\n");
 	for (fn = 0; fnms[fn]; fn++) {
 		(void)snprintf(nm, sizeof nm, fnms[fn], home);
 		if ((fd = open(nm, O_RDONLY)) != -1) {
@@ -461,6 +467,7 @@ config(void) {
 		else if (errno != ENOENT)
 			warnx("%s", nm);
 	}
+	logmsg("End of configuration process\n\n\n\n");
 }
 
 /*

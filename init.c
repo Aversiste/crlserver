@@ -95,15 +95,17 @@ init_playground_files(const char *path) {
 
 int
 init_session(const char *name) {
-	char path[MAXPATHLEN] = {0};
+	char path[MAXPATHLEN];
 	char home[MAXPATHLEN + 5] = "HOME=";
 
 	session.name = strdup(name);
 	if (session.name == NULL)
 		fclean_up("Memory error");
 
+	(void)memset(path, 0, sizeof path);
 	(void)snprintf(path, sizeof path, "%s/%c/%s",
 		 CRLSERVER_USERDATA, session.name[0], session.name);
+
 	session.home = strdup(path);
 	if (session.home == NULL)
 		fclean_up("Memory error");
@@ -113,7 +115,7 @@ init_session(const char *name) {
 		return -1;
 	}
 
-	/*session.env[0] = "TERM="CRLSERVER_DEFAULT_TERM;
+	/*
 	(void)strlcat(home, session.home, sizeof home);
 	if ((session.env[1] = strdup(home)) == NULL)
 		fclean_up("Memory error");
@@ -138,11 +140,6 @@ init_playground_dir(const char *player_name) {
 	if (access(playground, F_OK) == -1)
 		return -1;
 
-	/*
-	session.home = strdup(playground);
-	if (session.home == NULL)
-		fclean_up("Memory error");
-	*/
 	return init_playground_files(playground);
 }
 
