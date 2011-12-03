@@ -22,10 +22,7 @@
 int
 main(void) {
 	init();
-	config();
 	menus();
-	list_release(&glh);
-	list_release(&elh);
 	end_window();
 	return (EX_OK);
 }

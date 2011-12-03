@@ -340,10 +340,18 @@ login_menu(void) {
 		goto clean;
 	}
 
-	/* Successful loin ! log it */
+	/* Successful login! log it */
 	logmsg("%s successfully logged in\n", user);
+
+	/* parse the configuration files */
+	config();
+
 	(void)form_release(form);
 	user_menu();
+
+	list_release(&glh);
+	list_release(&elh);
+
 	return 0;
 clean:
 	(void)form_release(form);

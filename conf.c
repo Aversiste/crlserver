@@ -103,7 +103,7 @@ parse_var_string(char *p, const char *fnm, int *linep) {
 
 	/* a string begin with a '"' */
 	if (*p != '"')
-		errx(1, "%s:%d: invalid string", fnm, *linep);
+		clean_upx(1, "%s:%d: invalid string", fnm, *linep);
 	++p;
 
 	/* check the validity of the string */
@@ -113,14 +113,17 @@ parse_var_string(char *p, const char *fnm, int *linep) {
 	string = p;
 	(void)strncpy(buf, stringstart, string - stringstart);
 	buf[string - stringstart] = '\0';
-	value = strdup(buf);
-	if (value == NULL)
-		errx(1, "strdup");
-	logmsg("%s:+-> [%s]\n", fnm, value);
+
 	/* and end with an other '"' */
 	if (*p != '"')
-		errx(1, "%s:%d: invalid string value \"%s\"", 
+		clean_upx(1, "%s:%d: invalid string value \"%s\"", 
 	    	    fnm, *linep, buf);
+
+	value = strdup(buf);
+	if (value == NULL)
+		clean_up(1, "parse_var_string");
+	logmsg("%s:+-> [%s]\n", fnm, value);
+
 	return value;
 }
 
@@ -161,7 +164,7 @@ parse_var_char(char **p, const char *fnm, int *linep) {
 
 	/* a char begin with a '\'' */
 	if (**p != '\'')
-		errx(1, "%s:%d: invalid char format", fnm, *linep);
+		clean_upx(1, "%s:%d: invalid char format", fnm, *linep);
 	++*p;
 
 	cstart = *p;
@@ -169,11 +172,11 @@ parse_var_char(char **p, const char *fnm, int *linep) {
 		++*p;
 	c = *p;
 	if (c - cstart != 1)
-		errx(1, "%s:%d: invalid char format", fnm, *linep);
+		clean_upx(1, "%s:%d: invalid char format", fnm, *linep);
 
 	/* and end with an other '"' */
 	if (**p != '\'')
-		errx(1, "%s:%d: invalid char format", fnm, *linep);
+		clean_upx(1, "%s:%d: invalid char format", fnm, *linep);
 	++*p;
 	logmsg("%s:+-> [%c]\n", fnm, *cstart);
 	return *cstart;
@@ -224,16 +227,34 @@ list_insert_string(struct list *lp, char *name, void *value) {
 	else if (strncmp(name, "pat", 3) == 0)
 		lp->path = (char *)value;
 	else
-		errx(1, "wtf ?");
+		clean_upx(1, "wtf ?");
 }
 
 static void
 list_insert_in_array(struct list *lp, char *name, char *value, int index) {
+	char buf[MAXNAMLEN];
+	char *c;
+
+	if (value == NULL)
+		goto skip;
+
+	/* replace %u by the username */
+	memset(buf, 0, sizeof buf);
+	c = strchr(value, '%');
+	if (c != NULL && c[1] == 'u') {
+		c[1] = 's';
+		snprintf(buf, sizeof buf, value, session.name);
+		free(value);
+		value = strdup(buf);
+		if (value == NULL)
+			clean_up(1, "memory error");
+	}
+
+skip:
 	if (strncmp(name, "par", 3) == 0)
 		lp->params[index] = value;
-	else if (strncmp(name, "env", 3) == 0) {
+	else if (strncmp(name, "env", 3) == 0)
 		lp->env[index] = value;
-	}
 }
 
 static char *
@@ -251,7 +272,7 @@ parse_value(char *buf, struct list *lp, int index, char *fnm, int *linep) {
 		list_insert_string(lp, varname[index].kw, str);
 		break;
 	case Vchar:
-		c= parse_var_char(&p, fnm, linep);
+		c = parse_var_char(&p, fnm, linep);
 		list_insert_string(lp, varname[index].kw, &c);
 		break;
 	case Varray:
@@ -303,13 +324,13 @@ parse_line(char *buf, struct list *lp, char *fnm, int *line) {
 	/* search a variable name */
 	index = parse_varname(p);
 	if (varname[index].kw == NULL)
-		errx(1, "%s:%d: bad variable name: %s", fnm, *line, p);
+		clean_up(1, "%s:%d: bad variable name: %s", fnm, *line, p);
 	p += strlen(varname[index].kw);
 	p = parse_space(p);
 
 	/* search for the assignement operator */
 	if (*p != '=')
-		errx(1, "%s:%d: expected '='", fnm, *line);
+		clean_upx(1, "%s:%d: expected '='", fnm, *line);
 	p++;
 	p = parse_space(p);
 
@@ -362,7 +383,7 @@ parse_block(char *buf, char *fnm, int *line) {
 	/* check for the 'new' keyword */
 	p = parse_string(p, "new");
 	if (p == NULL)
-		errx(1, "%s:%d: missing new operator", fnm, *line);
+		clean_upx(1, "%s:%d: missing new operator", fnm, *line);
 
 	/* skip spaces */
 	p = parse_space(p);
@@ -370,7 +391,7 @@ parse_block(char *buf, char *fnm, int *line) {
 	/* match the block name */
 	index = parse_blockname(p);
 	if (blockname[index] == NULL)
-		errx(1, "%s:%d: bad block name", fnm, *line);
+		clean_upx(1, "%s:%d: bad block name", fnm, *line);
 	p += strlen(blockname[index]);
 
 	/* skip spaces */
@@ -378,7 +399,7 @@ parse_block(char *buf, char *fnm, int *line) {
 
 	/* check for the assignement operator */
 	if (*p != '=')
-		errx(1, "%s:%d: missing assignement operator", fnm, *line);
+		clean_upx(1, "%s:%d: missing assignement operator", fnm, *line);
 	++p;
 	
 	/* skip spaces */
@@ -389,7 +410,7 @@ parse_block(char *buf, char *fnm, int *line) {
 		p = parse_walk_next_line(p);
 		p = parse_space(p);
 		if (*p != '{')
-			errx(1, "%s:%i: missing opening braces", fnm, *line);
+			clean_upx(1, "%s:%i: missing opening braces", fnm, *line);
 	}
 	++p;
 
@@ -420,7 +441,7 @@ load_config(int fd, int len, char *fnm) {
 
 	buf = mmap(0, len, PROT_READ, MAP_FILE, fd, 0);
 	if (buf == MAP_FAILED)
-		err(1, "mmap");
+		clean_up(1, "mmap");
 
 	line = 0;
 	p = (char *)buf;
@@ -429,7 +450,7 @@ load_config(int fd, int len, char *fnm) {
 	}
 	/*warnx("end of file");*/
 	if (munmap(buf, len) == -1)
-		err(1, "munmap");
+		clean_up(1, "munmap");
 }
 
 /*
@@ -459,7 +480,7 @@ config(void) {
 		(void)snprintf(nm, sizeof nm, fnms[fn], home);
 		if ((fd = open(nm, O_RDONLY)) != -1) {
 			if (stat(nm, &st) == -1)
-				err(1, "stat");
+				clean_up(1, "stat");
 
 			load_config(fd, st.st_size, nm);
 			(void)close(fd);
