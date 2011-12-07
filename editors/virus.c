@@ -4310,7 +4310,7 @@ edit_status (void)              // show file status on status line
 #ifdef BB_FEATURE_VI_READONLY
        "%s"
 #endif /* BB_FEATURE_VI_READONLY */
-       "%s line %d of %d --%d%%--", (cfn != 0 ? (char *) cfn : "No file"),
+       "%s line %d of %d --%d%%--", (cfn != 0 ? basename((char *)cfn) : "No file"),
 #ifdef BB_FEATURE_VI_READONLY
        ((vi_readonly == TRUE || readonly == TRUE) ? " [Read only]" : ""),
 #endif /* BB_FEATURE_VI_READONLY */
