@@ -71,6 +71,7 @@ char *version = "@(#) ee, version 1.4.1  $Revision: 1.10 $";
 #include <sys/stat.h>
 #include <errno.h>
 #include <string.h>
+#include <libgen.h>
 #include <pwd.h>
 
 #include <sys/wait.h>
@@ -1508,7 +1509,7 @@ char *cmd_str1;
 		if (in_file_name == NULL)
 			wprintw(com_win, no_file_string);
 		else
-			wprintw(com_win, current_file_str, in_file_name);
+			wprintw(com_win, current_file_str, basename(in_file_name));
 	}
 	else if ((*cmd_str >= '0') && (*cmd_str <= '9'))
 		goto_line(cmd_str);
@@ -1813,7 +1814,7 @@ check_fp()		/* open or close files according to flags */
 	buf.st_mode &= ~07777;
 	if ((temp != -1) && (buf.st_mode != 0100000) && (buf.st_mode != 0))
 	{
-		wprintw(com_win, file_is_dir_msg, tmp_file);
+		wprintw(com_win, file_is_dir_msg, basename(tmp_file));
 		wrefresh(com_win);
 		if (input_file)
 		{
@@ -1828,9 +1829,9 @@ check_fp()		/* open or close files according to flags */
 		wmove(com_win, 0, 0);
 		wclrtoeol(com_win);
 		if (input_file)
-			wprintw(com_win, new_file_msg, tmp_file);
+			wprintw(com_win, new_file_msg, basename(tmp_file));
 		else
-			wprintw(com_win, cant_open_msg, tmp_file);
+			wprintw(com_win, cant_open_msg, basename(tmp_file));
 		wrefresh(com_win);
 		wmove(text_win, scr_vert, (scr_horz - horiz_offset));
 		wrefresh(text_win);
@@ -1868,7 +1869,7 @@ check_fp()		/* open or close files according to flags */
 		wclrtoeol(com_win);
 		text_changes = TRUE;
 		if ((tmp_file != NULL) && (*tmp_file != '\0'))
-			wprintw(com_win, file_read_fin_msg, tmp_file);
+			wprintw(com_win, file_read_fin_msg, basename(tmp_file));
 	}
 	wrefresh(com_win);
 	wmove(text_win, scr_vert, (scr_horz - horiz_offset));
@@ -1889,7 +1890,7 @@ unsigned char *file_name;
 	{
 		wmove(com_win, 0, 0);
 		wclrtoeol(com_win);
-		wprintw(com_win, reading_file_msg, file_name);
+		wprintw(com_win, reading_file_msg, basename(file_name));
 		if (access((char*)file_name, 2))	/* check permission to write */
 		{
 			if ((errno == ENOTDIR) || (errno == EACCES) || (errno == EROFS) || (errno == ETXTBSY) || (errno == EFAULT))
@@ -1929,7 +1930,7 @@ unsigned char *file_name;
 	{
 		wmove(com_win, 0, 0);
 		wclrtoeol(com_win);
-		wprintw(com_win, file_read_lines_msg, in_file_name, curr_line->line_number);
+		wprintw(com_win, file_read_lines_msg, basename(in_file_name), curr_line->line_number);
 		if (ro_flag)
 			wprintw(com_win, read_only_msg);
 		wrefresh(com_win);
@@ -2178,7 +2179,7 @@ int fd;
 		{
 			wmove(com_win,0,0);
 			wclrtoeol(com_win);
-			wprintw(com_win, writing_file_msg, file_name);
+			wprintw(com_win, writing_file_msg, basename(file_name));
 			wrefresh(com_win);
 			cr = '\n';
 			out_line = first_line;
@@ -2200,7 +2201,7 @@ int fd;
 			fclose(temp_fp);
 			wmove(com_win,0,0);
 			wclrtoeol(com_win);
-			wprintw(com_win, file_written_msg, file_name, lines, charac);
+			wprintw(com_win, file_written_msg, basename(file_name), lines, charac);
 			wrefresh(com_win);
 			return(TRUE);
 		}
