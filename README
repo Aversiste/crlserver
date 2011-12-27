@@ -18,6 +18,10 @@ TODO:
  * Support of ttyplay for real time games watching.
  * Configurable menus via the configuration file, like dgamelaunch does.
 
+crlserver is known to run on :
+ * Intel running OpenBSD or Ubuntu
+ * Lemote Loongson (mips) running OpenBSD
+
 Contribution
 ------------
 There is an important thing to understand if you want to contribute :<br />
@@ -27,38 +31,43 @@ Remember that your patches are your own intellectual properties.
 
 How to setup ?
 --------------
+Compilation:
+ * Edit 'pathnames.h', to suit your needs (there is documentation inside).
+ * Compile crlserver with BSDmakefile or GNUmakefile.
+  
+Installation:
+ * Put the binary somewhere and the content of 'crlsdir' in the directories
+   you have specified in 'pathnames.h'.
+ * Create the 'playground' and 'userdata' directories.
+ * Create a user (eg: 'crlserver')
+ * Edit your sshd_config and add those lines:
+    Match User crls
+            ForceCommand /path/to/crlserver
+ * Alternatively you can use telnet or put crlserver as a login shell
+   but it's not the recommended way.
+ * Create a crlserver configuration file and put it in /etc or crlserver's home
+ * It works (or if not, mail me) !
 
-Fetch the code and use BSDmakefile or GNUmakefile, depending on your
-working environment.
-
-You have to edit pathnames.h if you want to change path for files or folders.
-
-Add a user 'crls' and give it crlserver as login shell.
-Now, setup a ssh server, and *tada*, it works.
-
-If you have an error or even a little warning, mail me (or fork and patch it).
-
-crlserver is actualy known to run and work fine on Ubuntu and OpenBSD,
-help us to run everywhere :)
+Configuration:
+ * Grab the sample.conf in crlsdir
 
 Why X, my favorite roguelike, is not supported ?
 ------------------------------------------------
 
-Hey, just add the configuration file for it.
-It's simple.
+It's really simple to add it !
+Open your main configuration file and add a block for your game :
 
-This is the rogue one :
+    new game = {
+	   name        = "nethack"
+	   longname    = "NetHack"
+	   version     = "3.4.3"
+	   description = "This is the vanilla version of NetHack"
+	   key         = 'n'
+	   path 	    = "/usr/games/nethack"
+	   params      = "-u %u"
+    }
 
-    name=rogue
-    longname=rogue-clone
-    version=III
-    description=Written by Tim Stoehr. This game is the origin.
-    key=r
-    path=/usr/games/rogue
-    params=
-    env=ROGUEOPTS=name=%user%
-
-The params and env keywords are optionals.
+You can do the same thing for text editors.
 
 I'm on Windows and I want to run crlserver.
 -------------------------------------------
