@@ -121,14 +121,12 @@ editors_menu(games_list *glp) {
 				(void)refresh();
 				(void)endwin();
 
-				logmsg("%s edited %s with %s\n",
-				    session.name, rc_path, lp->path);
-				logmsg("%s home is set to %s\n",
-				    session.name, session.home);
-
-				lp->params[0] = lp->path;
 				if (lp->params[1] != NULL)
 					free(lp->params[1]);
+				/*
+				 * XXX: We should check for the next free place
+				 * rather than use 1.
+				 */
 				lp->params[1] = strdup(rc_path);
 				if (lp->params[1] == NULL)
 					clean_upx(1, "memory error");
@@ -148,6 +146,8 @@ editors_menu(games_list *glp) {
 			}
 		}
 	} while (1);	
+	free(lp->params[1]);
+	lp->params = NULL;
 }
 
 static void
@@ -163,17 +163,13 @@ games_menu(games_list *glp) {
 			(void)clear();
 			(void)refresh();
 			(void)endwin();
-			logmsg("%s played %s\n",
-			    session.name, glp->path);
-			logmsg("%s home is set to %s\n",
-			    session.name, glp->env[1]);
-			glp->params[0] = glp->path;
 
 			pid = fork();
 			if (pid < 0)
 				clean_up(1, "fork");
 			else if (pid == 0) {
 				execve(glp->path, glp->params, glp->env);
+				logmsg("%s: %s %s\n", session.name, glp->path, glp->params[1]);
 				clean_up(1, "execve error");
 			}
 			else
@@ -352,10 +348,12 @@ login_menu(void) {
 	}
 
 	/* Successful login! log it */
-	logmsg("%s successfully logged in\n", user);
+	/* logmsg("%s successfully logged in\n", user);*/
 
 	/* parse the configuration files */
 	config();
+	list_finalize(&glh);
+	list_finalize(&elh);
 
 	(void)form_release(form);
 	user_menu();

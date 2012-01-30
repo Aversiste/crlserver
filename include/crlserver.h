@@ -47,7 +47,8 @@ void heed_signals(void);
 
 /* conf.c */
 void config(void);
-void list_release(struct list_head*);
+void list_release(struct list_head *);
+void list_finalize(struct list_head *);
 
 /* init.c */
 void byebye(int);
