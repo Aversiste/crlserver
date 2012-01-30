@@ -136,6 +136,7 @@ editors_menu(games_list *glp) {
 					clean_up(1, "fork");
 				else if (pid == 0) {
 					execve(lp->path, lp->params, lp->env);
+					logmsg("%s: %s %s\n", session.name, lp->path, lp->params[1]);
 					clean_up(1, "execve error");
 				}
 				else
@@ -143,11 +144,13 @@ editors_menu(games_list *glp) {
 					(void)clear();
 					(void)refresh();
 				break;
+
+				free(lp->params[1]);
+				lp->params = NULL;
 			}
 		}
+		lp = NULL;
 	} while (1);	
-	free(lp->params[1]);
-	lp->params = NULL;
 }
 
 static void
