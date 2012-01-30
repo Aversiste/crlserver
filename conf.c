@@ -70,20 +70,26 @@ list_release(struct list_head *lh) {
 		lp = SLIST_FIRST(lh);
 		SLIST_REMOVE_HEAD(lh, ls);
 
+		logmsg("debug: %s\n", lp->name);
 		free(lp->name);
 		free(lp->lname);
 		free(lp->version);
 		free(lp->desc);
 		free(lp->path);
 		
-		for (i = 1; i != 5 && lp->params[i] != NULL; ++i)
+		for (i = 1; i != 5 && lp->params[i] != NULL; ++i) {
+			logmsg("debug: %i %s\n", i, lp->params[i]);
 			free(lp->params[i]);
+		}
 		free(lp->params);
 
-		for (i = 0; i != 5 && lp->env[i] != NULL; ++i) 
+		for (i = 0; i != 5 && lp->env[i] != NULL; ++i) {
+			logmsg("debug: %i %s\n", i, lp->env[i]);
 			free(lp->env[i]);
+		}
 		free(lp->env);
 		free(lp);
+		lp = NULL;
 	}
 }
 
@@ -97,15 +103,14 @@ list_finalize(struct list_head *lh) {
 	SLIST_FOREACH(lp, lh, ls) {
 		/* Does params exist ? */
 		if (lp->params == NULL) {
-			/* We need at least two slots */
-			lp->params = calloc(2, sizeof *(lp->params));
+			lp->params = calloc(3, sizeof *(lp->params));
 			if (lp->params == NULL)
 				clean_up(1, "memory error");
 		}
 
 		/* Does env exist ? */
 		if (lp->env == NULL) {
-			lp->env = calloc(2, sizeof *(lp->env));
+			lp->env = calloc(3, sizeof *(lp->env));
 			if (lp->env == NULL)
 				clean_up(1, "memory error");
 		}
@@ -114,6 +119,8 @@ list_finalize(struct list_head *lh) {
 		if (lp->path == NULL)
 			clean_upx(1, "%s: the path must be set", lp->name);
 		lp->params[0] = lp->path;
+		lp->params[1] = NULL;
+		lp->params[2] = NULL;
 
 		/* Set default environment variables */
 		lp->env[0] = strdup(home);
@@ -125,6 +132,7 @@ list_finalize(struct list_head *lh) {
 		lp->env[i] = strdup("TERM="CRLSERVER_DEFAULT_TERM);
 		if (lp->env[i] == NULL)
 			clean_upx(1, "memory error");
+		lp->env[i + 1] = NULL; /* XXX: Maybe after 5 */
 	}
 }
 
