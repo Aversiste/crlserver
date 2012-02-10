@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Tristan Le Guern <leguern@medu.se>
+ * Copyright (c) 2011 Tristan Le Guern <leguern AT medu DOT se>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,22 +14,15 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef CRLSERVER_SQLITE_H_
-#define CRLSERVER_SQLITE_H_
+#ifndef CRLSERVER_DB_H_
+#define CRLSERVER_DB_H_
 
-#ifdef SQLITE_FLAVOR
-
-# define db_init   sqlite_init
-# define db_insert sqlite_insert
-# define db_update sqlite_update
-# define db_check_user sqlite_check_user
-
-void sqlite_init(void);
-void sqlite_insert(const char *, const char *, const char *);
-void sqlite_update(unsigned int, const char *, const char *, const char *);
-int do_user_exist(const char *);
-int sqlite_check_user(const char *, char *);
-
-#endif /* SQLITE_FLAVOR */
+int db_open(const char *);
+int db_init(const char *);
+int db_check(const char *);
+int db_user_add(const char *, const char *, const char *);
+int db_user_mod_email(const char *, const char *);
+int db_user_mod_password(const char *, const char *);
+int db_user_auth(const char *, const char *);
 
 #endif

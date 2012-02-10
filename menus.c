@@ -336,14 +336,10 @@ login_menu(void) {
 	if (user == NULL || pass == NULL)
 		goto clean;
 
-	if (db_check_user(user, crypt(pass, "$1")) != 0)
+	if (db_user_auth(user, crypt(pass, "$1")) != 0)
 		goto clean;
-
-	/* This flag is set by db_check_user */
-	if (session.logged == 0) {
-		scrmsg(14, 1, "No match");
-		goto clean;
-	}
+	else
+		session.logged = 1;
 
 	if (init_session(user) != 0) {
 		scrmsg(14, 1, "Error whith your session");
@@ -427,8 +423,7 @@ register_menu(void) {
 	}
 
 	/* This function actually print is own error message */
-	if (do_user_exist(user) == 0)
-		db_insert(user, email, crypt(pass, "$1"));
+	db_user_add(user, email, crypt(pass, "$1"));
 
 clean:
 	(void)form_release(form);

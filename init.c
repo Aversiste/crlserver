@@ -146,9 +146,12 @@ init_playground_dir(const char *player_name) {
 
 void
 init(void) {
+	const char *db_path = CRLSERVER_PLAYGROUND"/"CRLSERVER_DATABASE;
 	heed_signals();
 
-	db_init();
+	if (db_check(db_path) == -1)
+		db_init(db_path);
+	db_open(db_path);
 
 	(void)initscr();
 	if (has_colors() == TRUE)
