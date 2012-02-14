@@ -15,8 +15,7 @@
  */
 
 #ifdef __Linux__
-# define _BSD_SOURCE
-# include <bsd/bsd.h>
+# include <bsd/string.h>
 #endif
 
 #include <sys/param.h>
@@ -39,7 +38,7 @@
 
 void
 byebye(int unused) {
-	unused = 0;
+	(void)unused;
 	ignore_signals();
 	/* TODO: Ask user if he really wants to quit */
 	clean_upx(1, "Bye bye !\n");

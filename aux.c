@@ -14,10 +14,6 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifdef __Linux__
-# define _BSD_SOURCE
-#endif
-
 #include <ctype.h>
 #include <signal.h>
 #include <string.h>

@@ -14,13 +14,9 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifdef __OpenBSD__
-# include <util.h>
-#elif __Linux__
+#ifdef __Linux__
 # define _XOPEN_SOURCE
-# define _BSD_SOURCE
-# include <bsd/bsd.h>
-# include "compat/util.h"
+# include <bsd/string.h>
 #endif
 
 #include <sys/param.h>
@@ -57,17 +53,16 @@ void
 print_file(const char *path) {
 	FILE *fd = fopen(path, "r");
 	int y = 0;
-	char *buf = NULL;
-	const char sep[3] = {'\\', '\\', 0};
+	char buf[80];
 
 	if (fd == NULL)
 		clean_up(1, "Error with file %s\n", path);
 
 	(void)erase();
-	while ((buf = fparseln(fd, NULL, NULL,
-	  sep, FPARSELN_UNESCALL)) != NULL) {
+	memset(buf, '\0', sizeof buf);
+	while (fgets(buf, sizeof buf, fd) != NULL) {
 		(void)mvprintw(y, 1, buf);
-		free(buf);
+		memset(buf, '\0', sizeof buf);
 		++y;
 	}
 	if (session.logged == 1)

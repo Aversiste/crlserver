@@ -1,13 +1,13 @@
 #	crlserver Makefile
 
 PROG=		crlserver
-SRCS =		main.c conf.c init.c menus.ci db-sqlite.c log.c aux.c extern.c
+SRCS =		main.c conf.c init.c menus.c db-sqlite.c log.c aux.c extern.c
 OSTYPE=		$(shell uname -s)
 
 CC?=		gcc
-CFLAGS +=	-Wall -Wextra -ansi -pedantic -I/usr/local/include
-CFLAGS +=	-D__${OSTYPE}__ -I./compat
-CFLAGS += 	-I./include
+CFLAGS +=	-Wall -Wextra -ansi -pedantic
+CFLAGS +=	-D__${OSTYPE}__ -D_BSD_SOURCE
+CFLAGS += 	-I./include -I/usr/local/include
 LDFLAGS+=	-L/usr/local/lib -lcurses -lform -lsqlite3 -lbsd -lcrypt
 
 OBJS=	${SRCS:.c=.o}
