@@ -103,36 +103,32 @@ list_finalize(struct list_head *lh) {
 	SLIST_FOREACH(lp, lh, ls) {
 		/* Does params exist ? */
 		if (lp->params == NULL) {
-			lp->params = calloc(3, sizeof *(lp->params));
+			lp->params = calloc(2, sizeof *(lp->params));
 			if (lp->params == NULL)
-				clean_up(1, "memory error");
+				clean_up(1, "%s:%s:", __FILE__, __func__);
 		}
 
 		/* Does env exist ? */
 		if (lp->env == NULL) {
 			lp->env = calloc(3, sizeof *(lp->env));
 			if (lp->env == NULL)
-				clean_up(1, "memory error");
+				clean_up(1, "%s:%s:", __FILE__, __func__);
 		}
 
 		/* Set the first params to the path */
 		if (lp->path == NULL)
 			clean_upx(1, "%s: the path must be set", lp->name);
 		lp->params[0] = lp->path;
-		lp->params[1] = NULL;
-		lp->params[2] = NULL;
 
 		/* Set default environment variables */
 		lp->env[0] = strdup(home);
 		if (lp->env[0] == NULL)
-			clean_up(1, "memory error");
-		for (i=1; lp->env[i] != NULL; ++i);
-		if (i > 5)
-			clean_upx(1, "no more slot aviable");
+			clean_up(1, "%s:%s:", __FILE__, __func__);
+		for (i = 1; lp->env[i] != NULL; ++i);
 		lp->env[i] = strdup("TERM="CRLSERVER_DEFAULT_TERM);
 		if (lp->env[i] == NULL)
-			clean_upx(1, "memory error");
-		lp->env[i + 1] = NULL; /* XXX: Maybe after 5 */
+			clean_up(1, "%s:%s:", __FILE__, __func__);
+		lp->env[i + 1] = NULL;
 	}
 }
 
@@ -237,10 +233,9 @@ parse_var_array(char **p, char ***array) {
 	int e;
 	unsigned int i;
 
-	/* Cases where we may need more than 5 slots are rare */
-	*array = calloc(4, sizeof **array);
+	*array = calloc(1, sizeof *array);
 	if (*array == NULL)
-		clean_up(1, "parse_var_array");
+		clean_up(1, "%s:%s:", __FILE__, __func__);
 
 	/*
          * i start at 1, because:
@@ -250,8 +245,16 @@ parse_var_array(char **p, char ***array) {
 	for (i = 1; ; ++i) {
 		char *value;
 
-		if (i > sizeof *array) {
-			clean_upx(1, "Arrays are hard coded to a size of 5.");	
+		if ((*array)[i] == NULL) {
+			size_t nsize;
+			char **npp;
+
+			nsize = i + 1;
+			npp = (char **)realloc(*array, nsize*sizeof(char*));
+			if (npp == NULL)
+				clean_up(1, "%s:%s:", __FILE__, __func__);
+			*array = npp;
+			(*array)[nsize] = NULL;
 		}
 		parse_var_string(p, &value);
 		parse_inner_replacement(&value);
@@ -439,11 +442,6 @@ parse_block(char *buf, char *fnm, int *line) {
 	if (*p == '\0')
 		return p;
 
-	/* check for the 'new' keyword */
-	e = parse_string(&p, "new");
-	if (e == -1)
-		clean_upx(1, "%s:%d: missing new operator", fnm, *line);
-
 	/* skip spaces */
 	parse_space(&p);
 
@@ -452,14 +450,6 @@ parse_block(char *buf, char *fnm, int *line) {
 	if (e == -1)
 		clean_upx(1, "%s:%d: bad block name", fnm, *line);
 	bindex = e;
-
-	/* skip spaces */
-	parse_space(&p);
-
-	/* check for the assignement operator */
-	e = parse_char(&p, '=');
-	if (e == -1)
-		clean_upx(1, "%s:%d: missing assignement operator", fnm, *line);
 
 	/* skip spaces */
 	parse_space(&p);
@@ -544,7 +534,7 @@ config(void) {
 	}
 }
 
-/*
+#ifdef CONF_DEBUG
 int
 main(int argc, char *argv[]) {
 	int ch;
@@ -575,10 +565,10 @@ main(int argc, char *argv[]) {
 		}
 		if (lp->env != NULL) {
 			printf(" -> env\n");
-			for (i = 0; i < 5; ++i)
+			for (i = 0; lp->env[i]; ++i)
 				printf("   -> [%s]\n", lp->env[i]);
 		}
 	}
 	return 0;
 }
-*/
+#endif
