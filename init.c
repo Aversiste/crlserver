@@ -35,13 +35,15 @@
 #include "crlserver.h"
 #include "db.h"
 #include "pathnames.h"
+#include "log.h"
 
 void
 byebye(int unused) {
 	(void)unused;
 	ignore_signals();
 	/* TODO: Ask user if he really wants to quit */
-	clean_upx(1, "Bye bye !\n");
+	end_window();
+	exit(1);
 	heed_signals();
 }
 
@@ -83,12 +85,12 @@ init_playground_files(const char *path) {
 			(void)fwrite(buf, 1, s, ofd);
 		}
 		if (fclose(ifd) != 0)
-			logmsg(strerror(errno));
+			log_notice("%s: fclose(%s)", __func__, in_path);
 		if (fclose(ofd) != 0)
-			logmsg(strerror(errno));
+			log_notice("%s: fclose(%s)", __func__, out_path);
 	}
 	if (closedir(dir) == -1)
-		logmsg(strerror(errno));
+		log_notice("%s: closedir(%s)", __func__, misc);
 	return 0;
 }
 
@@ -98,7 +100,7 @@ init_session(const char *name) {
 
 	session.name = strdup(name);
 	if (session.name == NULL)
-		fclean_up("Memory error");
+		log_err(1, "%s:", __func__);
 
 	(void)memset(path, 0, sizeof path);
 	(void)snprintf(path, sizeof path, "%s/%c/%s",
@@ -107,7 +109,7 @@ init_session(const char *name) {
 
 	session.home = strdup(path);
 	if (session.home == NULL)
-		fclean_up("Memory error");
+		log_err(1, "%s:", __func__);
 	if (access(session.home, F_OK) != 0) {
 		free(session.home);
 		free(session.name);
@@ -117,7 +119,7 @@ init_session(const char *name) {
 	/*
 	(void)strlcat(home, session.home, sizeof home);
 	if ((session.env[1] = strdup(home)) == NULL)
-		fclean_up("Memory error");
+		log_err(1, "%s:", __func__);
 	*/
 	return 0;
 }
@@ -162,8 +164,14 @@ init(void) {
 	 * A lot of games ask this size, so check it now.
 	 * We don't care of later window resizing.
 	 */
-	if ((LINES < DROWS) || (COLS < DCOLS))
-		fclean_up("must be displayed on 24 x 80 screen (or larger)");
+	if ((LINES < DROWS) || (COLS < DCOLS)) {
+		(void)move(DROWS-1, 0);
+		(void)refresh();
+		end_window();
+		fprintf(stderr, "must be displayed on 24 x 80 screen "
+		  "(or larger)");
+		exit(1);
+	}
 
 	session.logged = 0;
 	session.name = NULL;

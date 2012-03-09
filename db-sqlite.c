@@ -22,10 +22,9 @@
 #include <sqlite3.h>
 #include <unistd.h>
 
-#include <err.h>
-
 #include "crlserver.h"
 #include "db.h"
+#include "log.h"
 
 sqlite3 *db_link;
 
@@ -36,19 +35,19 @@ db_open(const char *db_path) {
 
 	/* open the database */
 	if (sqlite3_open(db_path, &db) != SQLITE_OK) {
-		warnx("Can't open %s: %s", db_path, sqlite3_errmsg(db));
+		log_warnx("Can't open %s: %s", db_path, sqlite3_errmsg(db));
 		return -1;
 	}
 	
 	/* make database secure */
 	if (chmod(db_path, S_IRUSR | S_IWUSR) != 0) {
-		warnx("Could not make %s file secure: %s",
+		log_warnx("Could not make %s file secure: %s",
 		db_path, sqlite3_errmsg(db));
 	}
 	
 	sql_res = sqlite3_busy_timeout(db, 2000);
 	if (sql_res != SQLITE_OK) {
-		warnx("Can't set busy timout: %s", sqlite3_errmsg(db));
+		log_warnx("Can't set busy timout: %s", sqlite3_errmsg(db));
 		sqlite3_close(db);
 		return -1;
 	}
@@ -68,7 +67,7 @@ db_init(const char *db_path) {
 	/* lock the database */
 	sql_res = sqlite3_exec(db_link, "BEGIN TRANSACTION", NULL, NULL, NULL);
 	if (sql_res != SQLITE_OK) {
-		warnx("Can't initialise db: %s", sqlite3_errmsg(db_link));
+		log_warnx("Can't initialise db: %s", sqlite3_errmsg(db_link));
 		sqlite3_close(db_link);
 		db_link = NULL;
 		return -1;
@@ -82,7 +81,7 @@ db_init(const char *db_path) {
 	    NULL, NULL, NULL);
 
 	if (sql_res != SQLITE_OK) {
-		warnx("Can't initialise db: %s", sqlite3_errmsg(db_link));
+		log_warnx("Can't initialise db: %s", sqlite3_errmsg(db_link));
 		sqlite3_close(db_link);
 		db_link = NULL;
 		return -1;
@@ -91,7 +90,7 @@ db_init(const char *db_path) {
 	/* unlock the database */
 	sql_res = sqlite3_exec(db_link, "END TRANSACTION", NULL, NULL, NULL);
 	if (sql_res != SQLITE_OK) {
-		warnx("Can't initialise db: %s", sqlite3_errmsg(db_link));
+		log_warnx("Can't initialise db: %s", sqlite3_errmsg(db_link));
 		sqlite3_close(db_link);
 		db_link = NULL;
 		return -1;
@@ -114,7 +113,7 @@ db_user_add(const char *name, const char *email, const char *password) {
 	ret = 0;
 	sql_res = sqlite3_prepare_v2(db_link, sql, -1, &stmt, NULL);
 	if (sql_res != SQLITE_OK) {
-		warnx("Can't prepare sql: %s", sqlite3_errmsg(db_link));
+		log_warnx("Can't prepare sql: %s", sqlite3_errmsg(db_link));
 		ret = -1;
 		goto clean;
 	}
@@ -124,18 +123,18 @@ db_user_add(const char *name, const char *email, const char *password) {
 	sql_res |= sqlite3_bind_text(stmt, 2, email, -1, SQLITE_TRANSIENT);
 	sql_res |= sqlite3_bind_text(stmt, 3, password, -1, SQLITE_TRANSIENT);
 	if (sql_res != SQLITE_OK) {
-		warnx("Can't bind sql: %s", sqlite3_errmsg(db_link));
+		log_warnx("Can't bind sql: %s", sqlite3_errmsg(db_link));
 		ret = -1;
 		goto clean;
 	}
 
 	sql_res = sqlite3_step(stmt);
 	if (sql_res == SQLITE_CONSTRAINT) {
-		warnx("User '%s' already exists", name);
+		log_warnx("User '%s' already exists", name);
 		ret = -1;
 		goto clean;
 	} else if (sql_res != SQLITE_DONE) {
-		warnx("Can't step sql: %s", sqlite3_errmsg(db_link));
+		log_warnx("Can't step sql: %s", sqlite3_errmsg(db_link));
 		goto clean;
 	}
 
@@ -154,7 +153,7 @@ db_user_mod_email(const char *name, const char *email) {
 	ret = 0;
 	sql_res = sqlite3_prepare_v2(db_link, sql, -1, &stmt, NULL);
 	if (sql_res != SQLITE_OK) {
-		warnx("Can't prepare sql: %s", sqlite3_errmsg(db_link));
+		log_warnx("Can't prepare sql: %s", sqlite3_errmsg(db_link));
 		ret = -1;
 		goto clean;
 	}
@@ -163,14 +162,14 @@ db_user_mod_email(const char *name, const char *email) {
 	sql_res = sqlite3_bind_text(stmt, 1, email, -1, SQLITE_TRANSIENT);
 	sql_res |= sqlite3_bind_text(stmt, 2, name, -1, SQLITE_TRANSIENT);
 	if (sql_res != SQLITE_OK) {
-		warnx("Can't bind sql: %s", sqlite3_errmsg(db_link));
+		log_warnx("Can't bind sql: %s", sqlite3_errmsg(db_link));
 		ret = -1;
 		goto clean;
 	}
 
 	sql_res = sqlite3_step(stmt);
 	if (sql_res != SQLITE_DONE) {
-		warnx("Failed to update %s's email", name);
+		log_warnx("Failed to update %s's email", name);
 		ret = -1;
 		goto clean;
 	}
@@ -190,7 +189,7 @@ db_user_mod_password(const char *name, const char *hash) {
 	ret = 0;
 	sql_res = sqlite3_prepare_v2(db_link, sql, -1, &stmt, NULL);
 	if (sql_res != SQLITE_OK) {
-		warnx("Can't prepare sql: %s", sqlite3_errmsg(db_link));
+		log_warnx("Can't prepare sql: %s", sqlite3_errmsg(db_link));
 		ret = -1;
 		goto clean;
 	}
@@ -199,14 +198,14 @@ db_user_mod_password(const char *name, const char *hash) {
 	sql_res = sqlite3_bind_text(stmt, 1, hash, -1, SQLITE_TRANSIENT);
 	sql_res |= sqlite3_bind_text(stmt, 2, name, -1, SQLITE_TRANSIENT);
 	if (sql_res != SQLITE_OK) {
-		warnx("Can't bind sql: %s", sqlite3_errmsg(db_link));
+		log_warnx("Can't bind sql: %s", sqlite3_errmsg(db_link));
 		ret = -1;
 		goto clean;
 	}
 
 	sql_res = sqlite3_step(stmt);
 	if (sql_res != SQLITE_DONE) {
-		warnx("Failed to update %s's password", name);
+		log_warnx("Failed to update %s's password", name);
 		ret = -1;
 		goto clean;
 	}
@@ -227,7 +226,7 @@ db_user_auth(const char *name, const char *hash) {
 	ret = 0;
 	sql_res = sqlite3_prepare_v2(db_link, sql, -1, &stmt, NULL);
 	if (sql_res != SQLITE_OK) {
-		warnx("Can't prepare sql: %s", sqlite3_errmsg(db_link));
+		log_warnx("Can't prepare sql: %s", sqlite3_errmsg(db_link));
 		ret = -1;
 		goto clean;
 	}
@@ -235,25 +234,25 @@ db_user_auth(const char *name, const char *hash) {
 	/* bind name */
 	sql_res = sqlite3_bind_text(stmt, 1, name, -1, SQLITE_TRANSIENT);
 	if (sql_res != SQLITE_OK) {
-		warnx("Can't bind sql: %s", sqlite3_errmsg(db_link));
+		log_warnx("Can't bind sql: %s", sqlite3_errmsg(db_link));
 		ret = -1;
 		goto clean;
 	}
 
 	sql_res = sqlite3_step(stmt);
 	if (sql_res == SQLITE_DONE) {
-		warnx("User %s does not exist", name);
+		log_warnx("User %s does not exist", name);
 		ret = -1;
 		goto clean;
 	} else if (sql_res != SQLITE_ROW) {
-		warnx("Can't step sql: %s", sqlite3_errmsg(db_link));
+		log_warnx("Can't step sql: %s", sqlite3_errmsg(db_link));
 		ret = -1;
 		goto clean;
 	}
 
 	db_hash = (char *)sqlite3_column_text(stmt, 0);
 	if (strcmp(hash, db_hash) != 0) {
-		warnx("User %s: authentication failed", name);
+		log_warnx("User %s: authentication failed", name);
 		ret = -1;
 		goto clean;
 	}
@@ -268,7 +267,7 @@ db_check(const char *db_path) {
 	struct stat st;
 
 	if (stat(db_path, &st) == -1) {
-		warn("Can't stat %s", db_path);
+		log_warn("Can't stat %s", db_path);
 		return -1;
 	}
 

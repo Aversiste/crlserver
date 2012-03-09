@@ -60,13 +60,6 @@ void start_window(void);
 __inline void end_window(void);
 void free_env(void);
 
-/* log.c */
-void clean_up(int, const char *, ...);
-void clean_upx(int, const char *, ...);
-void fclean_up(const char *);
-void logmsg(const char *, ...);
-void scrmsg(int, int, const char *);
-
 /* menus.c */
 void menus(void);
 int has_config_file(games_list *);

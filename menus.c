@@ -34,6 +34,7 @@
 #include "crlserver.h"
 #include "db.h"
 #include "pathnames.h"
+#include "log.h"
 
 int
 has_config_file(games_list *glp) {
@@ -56,7 +57,7 @@ print_file(const char *path) {
 	char buf[80];
 
 	if (fd == NULL)
-		clean_up(1, "Error with file %s\n", path);
+		log_err(1, "Error with file %s\n", path);
 
 	(void)erase();
 	memset(buf, '\0', sizeof buf);
@@ -124,15 +125,15 @@ editors_menu(games_list *glp) {
 				 */
 				lp->params[1] = strdup(rc_path);
 				if (lp->params[1] == NULL)
-					clean_upx(1, "memory error");
+					log_err(1, "editors_menu");
 
 				pid = fork();
 				if (pid < 0)
-					clean_up(1, "fork");
+					log_err(1, "fork");
 				else if (pid == 0) {
 					execve(lp->path, lp->params, lp->env);
-					logmsg("%s: %s %s\n", session.name, lp->path, lp->params[1]);
-					clean_up(1, "execve error");
+					log_debug("%s: %s %s\n", session.name, lp->path, lp->params[1]);
+					log_err(1, "execve");
 				}
 				else
 					waitpid(pid, &status, 0);
@@ -164,11 +165,11 @@ games_menu(games_list *glp) {
 
 			pid = fork();
 			if (pid < 0)
-				clean_up(1, "fork");
+				log_err(1, "fork");
 			else if (pid == 0) {
 				execve(glp->path, glp->params, glp->env);
-				logmsg("%s: %s %s\n", session.name, glp->path, glp->params[1]);
-				clean_up(1, "execve error");
+				log_debug("%s: %s %s\n", session.name, glp->path, glp->params[1]);
+				log_err(1, "execve");
 			}
 			else
 				waitpid(pid, &status, 0);
@@ -289,12 +290,12 @@ field_sanitize(const FIELD *field) {
 	char *s = field_buffer(field, 0);
 
 	if (s == NULL) {
-		scrmsg(14, 1, "A field is missing\n");
+		log_screen(14, 1, "A field is missing\n");
 		return NULL;
 	}
 	trim(&s);
 	if (strlen(s) < 1) {
-		scrmsg(14, 1, "A field is missing\n");
+		log_screen(14, 1, "A field is missing\n");
 		return NULL;
 	}
 	return s;
@@ -317,7 +318,7 @@ login_menu(void) {
 
 	form = new_form(fields);
 	if (form == NULL)
-		clean_up(1, "login_menu");
+		log_err(1, "curses: login_menu");
 	(void)post_form(form);
 	print_file(CRLSERVER_CONFIG_DIR"/menus/login.txt");
 	(void)refresh();
@@ -337,12 +338,11 @@ login_menu(void) {
 		session.logged = 1;
 
 	if (init_session(user) != 0) {
-		scrmsg(14, 1, "Error whith your session");
+		log_screen(14, 1, "Error whith your session");
 		goto clean;
 	}
 
-	/* Successful login! log it */
-	/* logmsg("%s successfully logged in\n", user);*/
+	/* Successful login! */
 
 	/* parse the configuration files */
 	config();
@@ -380,7 +380,7 @@ register_menu(void) {
 
 	form = new_form(fields);
 	if (form == NULL)
-		clean_up(1, "register_menu");
+		log_err(1, "curses: register_menu");
 	(void)post_form(form);
 	print_file(CRLSERVER_CONFIG_DIR"/menus/register.txt");
 	(void)refresh();
@@ -398,22 +398,22 @@ register_menu(void) {
 		goto clean;
 	pass_size = strlen(pass);
 	if (strchr(email, '@') == NULL) {
-		scrmsg(14, 1, "Put a valid email please.");
+		log_screen(14, 1, "Put a valid email please.");
 		goto clean;
 	}
 	if (strncmp(pass, pass2, pass_size) != 0) {
-		scrmsg(14, 1, "Passwords don't match!");
+		log_screen(14, 1, "Passwords don't match!");
 		goto clean;
 	}
 	for (i = 0; user[i] != '\0'; ++i) {
 		if (isokay(user[i]) == 0) {
-			scrmsg(14, 1, "Only ascii alpha numerics in the username");
+			log_screen(14, 1, "Only ascii alpha numerics in the username");
 			goto clean;
 		}
 	}
 
 	if (init_playground_dir(user) == -1) {
-		scrmsg(14, 1, "Error while creating your playground");
+		log_screen(14, 1, "Error while creating your playground");
 		goto clean;
 	}
 

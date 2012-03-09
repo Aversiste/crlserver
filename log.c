@@ -1,5 +1,7 @@
+/*	$OpenBSD: log.c,v 1.8 2007/08/22 21:04:30 ckuethe Exp $ */
+
 /*
- * Copyright (c) 2011 Tristan Le Guern <leguern AT medu.se>
+ * Copyright (c) 2003, 2004 Henning Brauer <henning@openbsd.org>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -9,97 +11,162 @@
  * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
  * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ * WHATSOEVER RESULTING FROM LOSS OF MIND, USE, DATA OR PROFITS, WHETHER
+ * IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING
+ * OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
 #include <sys/types.h>
-#include <sys/times.h>
-#include <sys/select.h>
-#include <curses.h>
+
 #include <errno.h>
-#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sysexits.h>
+#include <syslog.h>
+#include <time.h>
+#include <curses.h>
 
 #include "crlserver.h"
 #include "pathnames.h"
+#include "log.h"
+
+static unsigned int debug;
 
 static void
-graceful_exit(int eval, const char *fmt, va_list ap, int flag) {
-	int	sverrno;
-	extern char *__progname;
-
-	sverrno = errno;
-
+graceful_exit(int eval) {
 	(void)move(DROWS-1, 0);
 	(void)refresh();
 	end_window();
-
-	(void)fprintf(stderr, "%s: ", __progname);
-	if (fmt != NULL) {
-		(void)vfprintf(stderr, fmt, ap);
-		if (flag == 1)
-			(void)fprintf(stderr, ": ");
-	}
-	if (flag == 1)
-		(void)fprintf(stderr, "%s\n", strerror(sverrno));
 	exit(eval);
 }
 
-void
-clean_up(int eval, const char *fmt, ...) {
-	va_list ap;
+static void
+vlog(int pri, const char *fmt, va_list ap) {
+	char	*nfmt;
+	FILE	*f;
+
+	f = fopen(CRLSERVER_PLAYGROUND"/"CRLSERVER_LOG_FILE, "a+");
+	if (f == NULL)
+		return;
+
+	/* best effort in out of mem situations */
+	if (asprintf(&nfmt, "%i: %s\n", pri, fmt) == -1) {
+		vfprintf(f, fmt, ap);
+		fprintf(f, "\n");
+	} else {
+		vfprintf(f, nfmt, ap);
+		free(nfmt);
+	}
+	fflush(f);
+}
+
+static void
+flog(int pri, const char *fmt, ...) {
+	va_list	ap;
 
 	va_start(ap, fmt);
-	graceful_exit(eval, fmt, ap, 1);
+	vlog(pri, fmt, ap);
 	va_end(ap);
 }
 
 void
-clean_upx(int eval, const char *fmt, ...) {
-	va_list ap;
+log_init(void) {
+	extern char *__progname;
 
-	va_start(ap, fmt);
-	graceful_exit(eval, fmt, ap, 0);
+	if (debug == 0)
+		openlog(__progname, LOG_PID | LOG_NDELAY, LOG_USER);
+
+	tzset();
+}
+
+void
+log_err(int eval, const char *emsg, ...) {
+	if (emsg == NULL)
+		flog(LOG_ERR, "error: %s", strerror(errno));
+	else
+		if (errno)
+			flog(LOG_ERR, "error: %s: %s",
+			    emsg, strerror(errno));
+		else
+			flog(LOG_ERR, "error: %s", emsg);
+
+	graceful_exit(eval);
+}
+
+void
+log_errx(int eval, const char *emsg) {
+	errno = 0;
+	log_err(eval, emsg);
+}
+
+void
+log_warn(const char *emsg, ...) {
+	char	*nfmt;
+	va_list	 ap;
+
+	/* best effort to even work in out of memory situations */
+	if (emsg == NULL)
+		flog(LOG_WARNING, "%s", strerror(errno));
+	else {
+		va_start(ap, emsg);
+
+		if (asprintf(&nfmt, "%s: %s", emsg, strerror(errno)) == -1) {
+			/* we tried it... */
+			vlog(LOG_WARNING, emsg, ap);
+			flog(LOG_ERR, "%s", strerror(errno));
+		} else {
+			vlog(LOG_WARNING, nfmt, ap);
+			free(nfmt);
+		}
+		va_end(ap);
+	}
+}
+
+void
+log_warnx(const char *emsg, ...) {
+	va_list	 ap;
+
+	va_start(ap, emsg);
+	vlog(LOG_WARNING, emsg, ap);
 	va_end(ap);
 }
 
-/* fast clean_up, in case of memory error */
 void
-fclean_up(const char *estr) {
-	(void)move(DROWS-1, 0);
-	(void)refresh();
-	end_window();
-	(void)printf("\n%s\n", estr);
-	exit(EX_SOFTWARE);
-}
+log_notice(const char *emsg, ...) {
+	va_list	 ap;
 
-void
-logmsg(const char *fmt, ...) {
-	va_list ap;
-	FILE *fd;
-
-	fd = fopen(CRLSERVER_PLAYGROUND"/"CRLSERVER_LOG_FILE, "a+");
-	if (fd == NULL)
-		clean_up(1, "fopen");
-	
-	va_start(ap, fmt);
-	(void)vfprintf(fd, fmt, ap);
+	va_start(ap, emsg);
+	vlog(LOG_NOTICE, emsg, ap);
 	va_end(ap);
-	(void)fclose(fd);
+}
+void
+log_info(const char *emsg, ...) {
+	va_list	 ap;
+
+	va_start(ap, emsg);
+	vlog(LOG_INFO, emsg, ap);
+	va_end(ap);
 }
 
 void
-scrmsg(int y, int x, const char *msg) {
+log_debug(const char *emsg, ...) {
+	va_list	 ap;
+
+	if (debug == 1) {
+		va_start(ap, emsg);
+		vlog(LOG_DEBUG, emsg, ap);
+		va_end(ap);
+	}
+}
+
+void
+log_screen(int y, int x, const char *msg) {
 	struct timeval t;
 
-	t.tv_sec = 2;
-	t.tv_usec = 0;
+	t.tv_sec = 1;
+	t.tv_usec = 5;
 	(void)mvaddstr(y, x, msg);
 	(void)refresh();
 	(void)select(0, NULL, NULL, NULL, &t);
 }
+

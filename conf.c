@@ -39,6 +39,7 @@
 #include "crlserver.h"
 #include "session.h"
 #include "list.h"
+#include "log.h"
 
 int debug;
 
@@ -70,24 +71,21 @@ list_release(struct list_head *lh) {
 		lp = SLIST_FIRST(lh);
 		SLIST_REMOVE_HEAD(lh, ls);
 
-		logmsg("debug: %s\n", lp->name);
 		free(lp->name);
 		free(lp->lname);
 		free(lp->version);
 		free(lp->desc);
 		free(lp->path);
 		
-		for (i = 1; i != 5 && lp->params[i] != NULL; ++i) {
-			logmsg("debug: %i %s\n", i, lp->params[i]);
+		/* Don't double free() the path */
+		for (i = 1; lp->params[i] != NULL; ++i)
 			free(lp->params[i]);
-		}
 		free(lp->params);
 
-		for (i = 0; i != 5 && lp->env[i] != NULL; ++i) {
-			logmsg("debug: %i %s\n", i, lp->env[i]);
+		for (i = 0; lp->env[i] != NULL; ++i)
 			free(lp->env[i]);
-		}
 		free(lp->env);
+
 		free(lp);
 		lp = NULL;
 	}
@@ -105,29 +103,29 @@ list_finalize(struct list_head *lh) {
 		if (lp->params == NULL) {
 			lp->params = calloc(2, sizeof *(lp->params));
 			if (lp->params == NULL)
-				clean_up(1, "%s:%s:", __FILE__, __func__);
+				log_err(1, "%s:%s:", __FILE__, __func__);
 		}
 
 		/* Does env exist ? */
 		if (lp->env == NULL) {
 			lp->env = calloc(3, sizeof *(lp->env));
 			if (lp->env == NULL)
-				clean_up(1, "%s:%s:", __FILE__, __func__);
+				log_err(1, "%s:%s:", __FILE__, __func__);
 		}
 
 		/* Set the first params to the path */
 		if (lp->path == NULL)
-			clean_upx(1, "%s: the path must be set", lp->name);
+			log_errx(1, "conf: the path must be set");
 		lp->params[0] = lp->path;
 
 		/* Set default environment variables */
 		lp->env[0] = strdup(home);
 		if (lp->env[0] == NULL)
-			clean_up(1, "%s:%s:", __FILE__, __func__);
+			log_err(1, "%s:%s:", __FILE__, __func__);
 		for (i = 1; lp->env[i] != NULL; ++i);
 		lp->env[i] = strdup("TERM="CRLSERVER_DEFAULT_TERM);
 		if (lp->env[i] == NULL)
-			clean_up(1, "%s:%s:", __FILE__, __func__);
+			log_err(1, "%s:%s:", __FILE__, __func__);
 		lp->env[i + 1] = NULL;
 	}
 }
@@ -146,7 +144,7 @@ parse_inner_replacement(char **value) {
 		free(*value);
 		*value = strdup(buf);
 		if (*value == NULL)
-			clean_up(1, "memory error");
+			log_err(1, "%s:%s:", __FILE__, __func__);
 	}
 
 }
@@ -207,7 +205,7 @@ parse_var_string(char **p, char **value) {
 
 	/* a string begin with a '"' */
 	if (parse_char(p, '"') == -1)
-		clean_upx(1, "invalid string");
+		log_errx(1, "invalid string");
 
 	/* check the validity of the string */
 	stringstart = *p;
@@ -219,11 +217,11 @@ parse_var_string(char **p, char **value) {
 
 	/* and end with an other '"' */
 	if (parse_char(p, '"') == -1)
-		clean_upx(1, "invalid string value \"%s\"", buf);
+		log_errx(1, "conf: invalid string value");
 
 	*value = strdup(buf);
 	if (*value == NULL)
-		clean_up(1, "parse_var_string");
+		log_err(1, "%s:%s:", __FILE__, __func__);
 
 	return 0;
 }
@@ -235,7 +233,7 @@ parse_var_array(char **p, char ***array) {
 
 	*array = calloc(1, sizeof *array);
 	if (*array == NULL)
-		clean_up(1, "%s:%s:", __FILE__, __func__);
+		log_err(1, "%s:%s:", __FILE__, __func__);
 
 	/*
          * i start at 1, because:
@@ -252,7 +250,7 @@ parse_var_array(char **p, char ***array) {
 			nsize = i + 1;
 			npp = (char **)realloc(*array, nsize*sizeof(char*));
 			if (npp == NULL)
-				clean_up(1, "%s:%s:", __FILE__, __func__);
+				log_err(1, "%s:%s:", __FILE__, __func__);
 			*array = npp;
 			(*array)[nsize] = NULL;
 		}
@@ -283,18 +281,18 @@ parse_var_char(char **p, char *value) {
 
 	/* a char begin with a '\'' */
 	if (parse_char(p, '\'') == -1)
-		clean_upx(1, "invalid char format");
+		log_errx(1, "invalid char format");
 
 	cstart = *p;
 	while (**p != '\0' && **p != '\'')
 		(*p)++;
 	c = *p;
 	if (c - cstart != 1)
-		clean_upx(1, "invalid char format");
+		log_errx(1, "invalid char format");
 
 	/* and end with an other '\'' */
 	if (parse_char(p, '\'') == -1)
-		clean_upx(1, "invalid char format");
+		log_errx(1, "invalid char format");
 
 	*value = *cstart;
 	return 0;
@@ -343,7 +341,7 @@ parse_value(char **p, int vindex, struct list *lp) {
 	case Vdouble:
 	case Vbool:
 	default:
-		clean_upx(1, "wtf");
+		log_errx(1, "wtf");
 	}
 
 	parse_space(p);
@@ -386,7 +384,7 @@ parse_line(char **p, struct list *lp) {
 	/* search a variable name */
 	e = parse_varname(p);
 	if (e == -1)
-		clean_upx(1, "bad variable name");
+		log_errx(1, "bad variable name");
 	/* Save the index on the variable table */
 	vindex = e;
 
@@ -395,7 +393,7 @@ parse_line(char **p, struct list *lp) {
 	/* search for the assignement operator */
 	e = parse_char(p, '=');
 	if (e == -1)
-		clean_upx(1, "expected '='");
+		log_errx(1, "expected '='");
 	parse_space(p);
 
 	/* parse the value */
@@ -420,7 +418,7 @@ parse_blockname(char **p) {
 }
 
 static char *
-parse_block(char *buf, char *fnm, int *line) {
+parse_block(char *buf) {
 	int e;
 	int bindex;
 	char *p = buf;
@@ -448,7 +446,7 @@ parse_block(char *buf, char *fnm, int *line) {
 	/* match the block name */
 	e = parse_blockname(&p);
 	if (e == -1)
-		clean_upx(1, "%s:%d: bad block name", fnm, *line);
+		log_errx(1, "conf: bad block name");
 	bindex = e;
 
 	/* skip spaces */
@@ -461,7 +459,7 @@ parse_block(char *buf, char *fnm, int *line) {
 		parse_space(&p);
 		e = parse_char(&p, '{');
 		if (e == -1)
-			clean_upx(1, "%s: missing openning braces", fnm);
+			log_err(1, "conf: missing openning braces");
 	}
 
 	/* check for the '}' operator */
@@ -481,23 +479,21 @@ parse_block(char *buf, char *fnm, int *line) {
  * mmap the given config file and start the parsing
  */
 static void
-load_config(int fd, unsigned long int len, char *fnm) {
-	int line;
+load_config(int fd, unsigned long int len) {
 	void *buf;
 	char *p;
 
 	buf = mmap(0, len, PROT_READ, MAP_FILE, fd, 0);
 	if (buf == MAP_FAILED)
-		clean_up(1, "mmap");
+		log_err(1, "mmap");
 
-	line = 0;
 	p = (char *)buf;
 	while (*p != '\0') {
-		p = parse_block(p, fnm, &line);
+		p = parse_block(p);
 	}
 
 	if (munmap(buf, len) == -1)
-		clean_up(1, "munmap");
+		log_err(1, "munmap");
 }
 
 /*
@@ -524,13 +520,13 @@ config(void) {
 		(void)snprintf(nm, sizeof nm, fnms[fn], home);
 		if ((fd = open(nm, O_RDONLY)) != -1) {
 			if (stat(nm, &st) == -1)
-				clean_up(1, "stat");
+				log_err(1, "stat");
 
-			load_config(fd, st.st_size, nm);
+			load_config(fd, st.st_size);
 			(void)close(fd);
 		} 
 		else if (errno != ENOENT)
-			logmsg("config: %s", nm);
+			log_notice("config: %s", nm);
 	}
 }
 
