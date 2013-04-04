@@ -19,6 +19,7 @@ option(ENABLE_LDAP "Enable the ldap backend" OFF)
 find_package(CONFUSE REQUIRED)
 include_directories(${CONFUSE_INCLUDE_DIR})
 
+# XXX: Find how to define this in a portable way ...
 include("/usr/local/share/cmake/Modules/FindCurses.cmake")
 set(CURSES_NEED_NCURSES TRUE)
 find_package(Curses REQUIRED)
@@ -49,6 +50,7 @@ endif(ENABLE_LDAP AND NOT LDAP_FOUND)
 # -------------------
 set(CMAKE_INSTALL_PREFIX "/usr/local/")
 set(${CMAKE_SYSTEM_NAME} True)
+set(CMAKE_C_FLAGS "-std=c99")
 
 # Global CPP definitions
 # ----------------------
@@ -66,13 +68,9 @@ set(SOURCES_LIST
 )
 
 if(ENABLE_SQLITE)
-    set(SOURCES_LIST ${SOURCES_LIST}
-        db-sqlite.c
-    )
+    set(SOURCES_LIST ${SOURCES_LIST} db-sqlite.c)
 else()
-    set(SOURCES_LIST ${SOURCES_LIST}
-        db-ldap.c
-    )
+    set(SOURCES_LIST ${SOURCES_LIST} db-ldap.c)
 endif()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
