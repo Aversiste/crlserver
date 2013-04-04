@@ -24,7 +24,7 @@
 
 #include "crlserver.h"
 
-__inline int
+int
 isokay(int c) {
 	if (isalnum(c) || c == ' ' || c == '-' || c == '_')
 		return 1;
@@ -109,10 +109,7 @@ has_config_file(struct list *lp) {
 	char path[MAXPATHLEN];
 	
 	(void)memset(path, '\0', MAXPATHLEN);
-	(void)strlcpy(path, session.home, sizeof path);
-	(void)strlcat(path, "/.", sizeof path);
-	(void)strlcat(path, lp->l_name, sizeof path);
-	(void)strlcat(path, "rc", sizeof path);
+	(void)snprintf(path, sizeof path, "%s/.%src", session.home, lp->l_name);
 	if (access(path, R_OK) == 0)
 		return 0;
 	return -1;
