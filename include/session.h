@@ -21,7 +21,12 @@ struct session {
 	int logged;
 	char *name;
 	char *home;
-	char **env;
 };
+
+struct options {
+	const char *o_db;
+	const char *o_log;
+};
+
 
 #endif

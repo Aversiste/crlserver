@@ -4,72 +4,74 @@ crlserver
 crlserver is a roguelike server in the spirit of dgamelaunch, but it
 manages users logins and scores for far more than just nethack.
 
-Feature:
+Features
+--------
 
- * It's free, no cost and GPL'ed.
- * Multiple games
- * Simple configuration
- * SQL abstraction
- * Simple and clean UI
+   * It's not GPL'ed
+   * Multiple game
+   * Simple configuration
+   * SQL or LDAP authentification backend
+   * Simple and clean UI
 
-TODO:
+TODO
+----
 
- * Support of ttyrec for games record.
- * Support of ttyplay for real time games watching.
- * Configurable menus via the configuration file, like dgamelaunch does.
+   * Support of ttyrec for games record
+   * Support of ttyplay for real time games watching
+   * Configurable menus via the configuration file, like dgamelaunch does
 
-crlserver is known to run on :
- * Intel running OpenBSD or Ubuntu
- * Lemote Loongson (mips) running OpenBSD
+Known working plateforms
+------------------------
 
-Contribution
-------------
-There is an important thing to understand if you want to contribute :<br />
-I **only** accept ISC licensed patches. No GPL !
+   * OpenBSD i386, amd64 and loongson
+   * Ubuntu i386 and amd64
 
-Remember that your patches are your own intellectual properties.
+Compilation
+-----------
 
-How to setup ?
---------------
-Compilation:
- * Edit 'pathnames.h', to suit your needs (there is documentation inside).
- * Compile crlserver with BSDmakefile or GNUmakefile.
+   * Edit 'pathnames.h', to suit your needs (there is documentation inside)
+   * Use 'make' or 'gmake' depending on your plateform
   
-Installation:
- * Put the binary somewhere and the content of 'crlsdir' in the directories
-   you have specified in 'pathnames.h'.
- * Create the 'playground' and 'userdata' directories.
- * Create a user (eg: 'crlserver')
- * Edit your sshd_config and add those lines:
-    Match User crls
+Installation
+------------
+
+   * Put the binary somewhere and the content of 'data' in the directories
+     you have specified in 'pathnames.h'.
+   * Create the 'playground' and 'userdata' directories.
+   * Create a user (eg: 'crlserver')
+   * Edit your sshd_config and add those lines:
+      Match User crlserver
             ForceCommand /path/to/crlserver
- * Alternatively you can use telnet or put crlserver as a login shell
-   but it's not the recommended way.
- * Create a crlserver configuration file and put it in /etc or crlserver's home
- * It works (or if not, mail me) !
+   * Alternatively you can use telnet or put crlserver as a login shell
+     but it's not the recommended way.
+   * Create a crlserver configuration file and put it in /etc or crlserver's
+     home
+   * It works (or if not, mail me) !
 
-Configuration:
- * Grab the sample.conf in crlsdir
+Configuration
+-------------
 
-Why X, my favorite roguelike, is not supported ?
-------------------------------------------------
+Grab the sample.conf in 'data' and change the values to what you want.
 
-It's really simple to add it !
-Open your main configuration file and add a block for your game :
-
-    new game = {
-	   name        = "nethack"
+    game nethack {
 	   longname    = "NetHack"
 	   version     = "3.4.3"
 	   description = "This is the vanilla version of NetHack"
-	   key         = 'n'
-	   path 	    = "/usr/games/nethack"
-	   params      = "-u %u"
+	   key         = "n"
+	   path        = "/usr/games/nethack"
+	   params      = {"-u","%user%"}
     }
+
+When the string '%user%' is found somewhere in the variables 'env' and 'params',
+it is automatically replaced by the username at login-time.
 
 You can do the same thing for text editors.
 
-I'm on Windows and I want to run crlserver.
--------------------------------------------
-Windows is not supported and not a targeted platform.<br />
-It's designed to work on Unix-like systems.
+    editor rledit {
+	   longname    = "RogueLike Editor"
+	   version     = "?"
+	   description = "This is an example"
+	   key         = "r"
+	   path        = "/usr/local/bin/rledit"
+    }
+

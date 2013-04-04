@@ -14,6 +14,8 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <sys/param.h>
+
 #include <ctype.h>
 #include <signal.h>
 #include <string.h>
@@ -56,6 +58,15 @@ trim(char **s) {
 }
 
 void
+byebye(int unused) {
+	(void)unused;
+	ignore_signals();
+	/* TODO: Ask user if he really wants to quit */
+	endwin();
+	exit(1);
+}
+
+void
 heed_signals(void) {
 	signal(SIGINT, byebye);
 	signal(SIGQUIT, byebye);
@@ -92,4 +103,19 @@ escape_space(char *s) {
 	ret = strdup(buf);
 	return ret;
 }
+
+int
+has_config_file(struct list *lp) {
+	char path[MAXPATHLEN];
+	
+	(void)memset(path, '\0', MAXPATHLEN);
+	(void)strlcpy(path, session.home, sizeof path);
+	(void)strlcat(path, "/.", sizeof path);
+	(void)strlcat(path, lp->l_name, sizeof path);
+	(void)strlcat(path, "rc", sizeof path);
+	if (access(path, R_OK) == 0)
+		return 0;
+	return -1;
+}
+
 

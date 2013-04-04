@@ -31,7 +31,7 @@
  * The playground directory is read and write, because it contains the
  * database, the log file and 'userdata', the users' personals directories
  */
-#define CRLSERVER_PLAYGROUND "path/to/crlserver/playground"
+#define CRLSERVER_PLAYGROUND "/tmp/crlsdir/"
 #define CRLSERVER_LOG_FILE "crlserver.log"
 #define CRLSERVER_DATABASE "crlserver.db"
 

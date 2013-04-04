@@ -18,12 +18,23 @@
 #include <sysexits.h>
 
 #include "crlserver.h"
+#include "pathnames.h"
+#include "list.h"
+
+struct session session;
+struct options options;
+
 
 int
 main(void) {
+	struct list_head *headp;
+
+	headp = conf_load_file(CRLSERVER_CONFIG_DIR"/crlserver.conf");
+	if (headp == NULL)
+		return (1);
 	init();
-	menus();
-	end_window();
+	menu_general(headp);
+	endwin();
 	return (EX_OK);
 }
 

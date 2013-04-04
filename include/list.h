@@ -20,21 +20,24 @@
 #define LIST_H__
 
 SLIST_HEAD(list_head, list);
-typedef struct list_head games_list_head;
-typedef struct list_head editors_list_head;
-typedef struct list games_list;
-typedef struct list editors_list;
+
+enum list_type {
+	LT_NONE,
+	LT_EDITOR,
+	LT_GAME
+};
 
 struct list {
-	char *name;
-	char *lname;
-	char *version;
-	char *desc;
-	char key;
-	char *path;
-	char **params;
-	char **env;
-	SLIST_ENTRY(list) ls;
+	enum list_type    l_type;
+	const char 	 *l_name;
+	const char 	 *l_longname;
+	const char 	 *l_version;
+	const char 	 *l_description;
+	const char 	 *l_path;
+	char		  l_key;
+	char		**l_env;
+	char		**l_params;
+	SLIST_ENTRY(list) l_next;
 };
 
 #endif

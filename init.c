@@ -27,6 +27,7 @@
 #include <dirent.h>
 #include <err.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sysexits.h>
@@ -37,18 +38,20 @@
 #include "pathnames.h"
 #include "log.h"
 
-void
-byebye(int unused) {
-	(void)unused;
-	ignore_signals();
-	/* TODO: Ask user if he really wants to quit */
-	end_window();
-	exit(1);
-	heed_signals();
+int
+init_playground_conffile(const char *path) {
+	char buf[1024];
+	int fd;
+
+	(void)path;
+	snprintf(buf, sizeof buf, "%s/%s", session.home, "crlserver.conf");
+	fd = open(buf, O_RDONLY);
+	/* YADA YADA YADA */
+	return -1;
 }
 
 int
-init_playground_files(const char *path) {
+init_playground_rcfiles(const char *path) {
 	struct dirent* dp;
 	const char *misc = CRLSERVER_CONFIG_DIR"/misc";
 	DIR* dir = opendir(misc);
@@ -116,88 +119,100 @@ init_session(const char *name) {
 		return -1;
 	}
 
-	/*
-	(void)strlcat(home, session.home, sizeof home);
-	if ((session.env[1] = strdup(home)) == NULL)
-		log_err(1, "%s:", __func__);
-	*/
 	return 0;
 }
 
-/* XXX: the name is not relevent */
-int
+char *
 init_playground_dir(const char *player_name) {
+	char *p;
 	char playground[MAXPATHLEN] = CRLSERVER_PLAYGROUND"/userdata";
 
 	if (player_name == NULL)
-		return -1;
+		return NULL;
 
 	(void)strlcat(playground, "/", sizeof playground);
 	(void)strncat(playground, player_name, 1);
 	(void)mkdir(playground, 0744);
+
 	(void)strlcat(playground, "/", sizeof playground);
 	(void)strlcat(playground, player_name, sizeof playground);
 	(void)mkdir(playground, 0744);
 
 	if (access(playground, F_OK) == -1)
-		return -1;
+		return NULL;
 
-	return init_playground_files(playground);
+	p = playground;
+	return p;
 }
 
 void
 init(void) {
-	const char *db_path = CRLSERVER_PLAYGROUND"/"CRLSERVER_DATABASE;
 	heed_signals();
+
+	/* First init the DB, if it fails we don't need to go further */
+	const char *db_path;
+	
+	if (options.o_db != NULL)
+		db_path = options.o_db;
+	else
+		db_path = CRLSERVER_PLAYGROUND"/"CRLSERVER_DATABASE;
 
 	if (db_check(db_path) == -1)
 		db_init(db_path);
 	db_open(db_path);
 
+	/* Curses initialization */
 	(void)initscr();
 	if (has_colors() == TRUE)
 		(void)start_color();
 	(void)curs_set(0);
-	start_window();
+	(void)cbreak();
+	(void)noecho();
+	(void)nonl();
+	(void)keypad(stdscr, TRUE);
 
 	/*
-	 * A lot of games ask this size, so check it now.
-	 * We don't care of later window resizing.
+	 * A lot of games ask 24x80, so check it now,
+	 * but don't care of later window resizing.
 	 */
 	if ((LINES < DROWS) || (COLS < DCOLS)) {
-		(void)move(DROWS-1, 0);
+		(void)move(DROWS - 1, 0);
 		(void)refresh();
-		end_window();
+		endwin();
 		fprintf(stderr, "must be displayed on 24 x 80 screen "
 		  "(or larger)");
 		exit(1);
 	}
 
+	/* Initialize default directories */
+	if (access(CRLSERVER_PLAYGROUND, F_OK) != 0) {
+		if (mkdir(CRLSERVER_PLAYGROUND, S_IRWXU) == -1) {
+			mvprintw(1, 1, "You need to mkdir %s\n",
+			    CRLSERVER_PLAYGROUND);
+			getch();
+			byebye(1);
+		}
+	}
+	if (access(CRLSERVER_PLAYGROUND"/userdata", F_OK) != 0) {
+		if (mkdir(CRLSERVER_PLAYGROUND"/userdata", S_IRWXU) == -1) {
+			mvprintw(2, 1, "You need to mkdir %s\n",
+			    CRLSERVER_PLAYGROUND"/userdata");
+			getch();
+			byebye(1);
+		}
+	}
+
 	session.logged = 0;
 	session.name = NULL;
 	session.home = NULL;
-	session.env = NULL;
 }
 
-void
-start_window(void) {
-	(void)cbreak();
-	(void)noecho();
-	(void)nonl();
-	(void)keypad(stdscr, TRUE);
-}
-
-__inline void
-end_window() {
-	(void)endwin();
-}
-
-void
-free_env(void) {
-	unsigned int i = 1; /* The env array has one hard coded field */
-
-	for (; i < CRLSERVER_MAX_ENV_LENGTH && session.env[i] != NULL; ++i) {
-		free(session.env[i]);
-	}
-}
+//void
+//free_env(void) {
+//	unsigned int i = 1; /* The env array has one hard coded field */
+//
+//	for (; i < CRLSERVER_MAX_ENV_LENGTH && session.env[i] != NULL; ++i) {
+//		free(session.env[i]);
+//	}
+//}
 

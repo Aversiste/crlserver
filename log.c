@@ -36,7 +36,7 @@ static void
 graceful_exit(int eval) {
 	(void)move(DROWS-1, 0);
 	(void)refresh();
-	end_window();
+	endwin();
 	exit(eval);
 }
 

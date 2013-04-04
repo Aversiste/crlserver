@@ -20,7 +20,6 @@
 #endif
 
 #include <sys/param.h>
-#include <sys/queue.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 
@@ -34,21 +33,8 @@
 #include "crlserver.h"
 #include "db.h"
 #include "pathnames.h"
+#include "list.h"
 #include "log.h"
-
-int
-has_config_file(games_list *glp) {
-	char path[MAXPATHLEN];
-	
-	(void)memset(path, '\0', MAXPATHLEN);
-	(void)strlcpy(path, session.home, sizeof path);
-	(void)strlcat(path, "/.", sizeof path);
-	(void)strlcat(path, glp->name, sizeof path);
-	(void)strlcat(path, "rc", sizeof path);
-	if (access(path, R_OK) == 0)
-		return 0;
-	return -1;
-}
 
 void
 print_file(const char *path) {
@@ -86,74 +72,73 @@ form_release(FORM *form) {
 		(void)free_field(fields[i]);
 }
 
+//static void
+//editors_menu(struct list *lp) {
+//	char rc_path[MAXPATHLEN];
+//	int status = 0, ch = 0;
+//	pid_t pid = 0;
+//
+//	(void)memset(rc_path, '\0', MAXPATHLEN);
+//	(void)strlcpy(rc_path, session.home, sizeof rc_path);
+//	(void)strlcat(rc_path, "/.", sizeof rc_path);
+//	(void)strlcat(rc_path, glp->name, sizeof rc_path);
+//	(void)strlcat(rc_path, "rc", sizeof rc_path);
+//	do {
+//		int i = 6;
+//		print_file(CRLSERVER_CONFIG_DIR"/menus/banner.txt");
+//		SLIST_FOREACH(lp, &elh, ls) {
+//			(void)mvprintw(i, 1, "%c) Edit with %s (%s %s)",
+//			lp->key, lp->name, lp->lname, lp->version);
+//			++i;
+//		}
+//		(void)mvaddstr(4, 1, "q) Quit");
+//		(void)refresh();
+//		ch = getch();
+//		if (ch == 'q')
+//			break;
+//		SLIST_FOREACH(lp, &elh, ls) {
+//			if (ch == lp->key) {
+//				(void)clear();
+//				(void)refresh();
+//				(void)endwin();
+//
+//				if (lp->params[1] != NULL)
+//					free(lp->params[1]);
+//				/*
+//				 * XXX: We should check for the next free place
+//				 * rather than use 1.
+//				 */
+//				lp->params[1] = strdup(rc_path);
+//				if (lp->params[1] == NULL)
+//					log_err(1, "editors_menu");
+//
+//				pid = fork();
+//				if (pid < 0)
+//					log_err(1, "fork");
+//				else if (pid == 0) {
+//					execve(lp->path, lp->params, lp->env);
+//					log_debug("%s: %s %s\n", session.name, lp->path, lp->params[1]);
+//					log_err(1, "execve");
+//				}
+//				else
+//					waitpid(pid, &status, 0);
+//					(void)clear();
+//					(void)refresh();
+//				break;
+//
+//				free(lp->params[1]);
+//				lp->params = NULL;
+//			}
+//		}
+//		lp = NULL;
+//	} while (1);	
+//}
+
 static void
-editors_menu(games_list *glp) {
-	char rc_path[MAXPATHLEN];
-	struct list *lp;
+games_menu(struct list *lp) {
 	int status = 0, ch = 0;
 	pid_t pid = 0;
-
-	(void)memset(rc_path, '\0', MAXPATHLEN);
-	(void)strlcpy(rc_path, session.home, sizeof rc_path);
-	(void)strlcat(rc_path, "/.", sizeof rc_path);
-	(void)strlcat(rc_path, glp->name, sizeof rc_path);
-	(void)strlcat(rc_path, "rc", sizeof rc_path);
-	do {
-		int i = 6;
-		print_file(CRLSERVER_CONFIG_DIR"/menus/banner.txt");
-		SLIST_FOREACH(lp, &elh, ls) {
-			(void)mvprintw(i, 1, "%c) Edit with %s (%s %s)",
-			lp->key, lp->name, lp->lname, lp->version);
-			++i;
-		}
-		(void)mvaddstr(4, 1, "q) Quit");
-		(void)refresh();
-		ch = getch();
-		if (ch == 'q')
-			break;
-		SLIST_FOREACH(lp, &elh, ls) {
-			if (ch == lp->key) {
-				(void)clear();
-				(void)refresh();
-				(void)endwin();
-
-				if (lp->params[1] != NULL)
-					free(lp->params[1]);
-				/*
-				 * XXX: We should check for the next free place
-				 * rather than use 1.
-				 */
-				lp->params[1] = strdup(rc_path);
-				if (lp->params[1] == NULL)
-					log_err(1, "editors_menu");
-
-				pid = fork();
-				if (pid < 0)
-					log_err(1, "fork");
-				else if (pid == 0) {
-					execve(lp->path, lp->params, lp->env);
-					log_debug("%s: %s %s\n", session.name, lp->path, lp->params[1]);
-					log_err(1, "execve");
-				}
-				else
-					waitpid(pid, &status, 0);
-					(void)clear();
-					(void)refresh();
-				break;
-
-				free(lp->params[1]);
-				lp->params = NULL;
-			}
-		}
-		lp = NULL;
-	} while (1);	
-}
-
-static void
-games_menu(games_list *glp) {
-	int status = 0, ch = 0;
-	pid_t pid = 0;
-	int configurable = has_config_file(glp);
+	int configurable = has_config_file(lp);
 
 	do {
 		switch (ch) {
@@ -167,8 +152,9 @@ games_menu(games_list *glp) {
 			if (pid < 0)
 				log_err(1, "fork");
 			else if (pid == 0) {
-				execve(glp->path, glp->params, glp->env);
-				log_debug("%s: %s %s\n", session.name, glp->path, glp->params[1]);
+				execve(lp->l_path, lp->l_params, lp->l_env);
+				fprintf(stderr, "%s: %s\n", session.name,
+				    lp->l_path);
 				log_err(1, "execve");
 			}
 			else
@@ -177,7 +163,8 @@ games_menu(games_list *glp) {
 		case 'e':
 		case 'E':
 			if (configurable == 0)
-				editors_menu(glp);
+				configurable = 1;
+				//editors_menu(glp);
 			break;
 		default:
 			break;
@@ -185,45 +172,76 @@ games_menu(games_list *glp) {
 		print_file(CRLSERVER_CONFIG_DIR"/menus/games.txt");
 		if (configurable == 0)
 			mvprintw(5, 1,"%s", "e) Edit the configuration file");
-		mvprintw(7, 1,"%s", glp->desc);
+		mvprintw(7, 1,"%s", lp->l_description);
 		refresh();
 	} while ((ch = getch()) != 'q');
 }
 
+//static void
+//settings_menu() {
+//	int ch = 0;
+//
+//	do {
+//		print_file(CRLSERVER_CONFIG_DIR"/menus/settings.txt");
+//		ch = getch();
+//		switch (ch) {
+//		case 'e':
+//		case 'E':
+//			break;
+//		case 'p':
+//		case 'P':
+//			break;
+//		case 'q':
+//		case 'Q':
+//			return;
+//		default:
+//			break;
+//		}
+//	} while (1);
+//}
+
 static void
-user_menu(void) {
+user_menu(struct list_head *headp) {
+	int ch = 0;
+
 	do {
-		games_list *glp;
-		int i = 6;
-		int ch = 0;
+		int i = 7;
+		struct list *lp;
 
 		print_file(CRLSERVER_CONFIG_DIR"/menus/banner.txt");
-		SLIST_FOREACH(glp, &glh, ls) {
-			mvprintw(i, 1, "%c) %s - %s (%s)", glp->key, glp->name,
-					glp->lname, glp->version);
-			++i;
-		}
 		(void)mvaddstr(4, 1, "q) Quit");
+		//(void)mvaddstr(5, 1, "s) Settings");
+		SLIST_FOREACH(lp, headp, l_next) {
+			if (lp->l_type == LT_GAME) {
+				mvprintw(i, 1, "%c) %s - %s (%s)", lp->l_key,
+				    lp->l_name, lp->l_longname, lp->l_version);
+				++i;
+			}
+		}
 		(void)refresh();
+
 		ch = getch();
-		if (ch == 'q')
+		switch (ch) {
+		case 's':
+		case 'S':
+			//settings_menu();
 			break;
-		SLIST_FOREACH(glp, &glh, ls) {
-			if (ch == glp->key) {
-				games_menu(glp);
+		default:
+			break;
+		}
+		SLIST_FOREACH(lp, headp, l_next) {
+			if (ch == lp->l_key && lp->l_type == LT_GAME) {
+				games_menu(lp);
 				break;
 			}
 		}
-	} while (1);
+	} while ((ch = getch()) != 'q');
 	session.logged = 0;
 	free(session.name);
 	free(session.home);
-	/*
-	free_env();
-	*/
 }
 
-__inline void
+static void
 server_info(void) {
 	print_file(CRLSERVER_CONFIG_DIR"/menus/server_info.txt");
 	getch();
@@ -303,11 +321,11 @@ field_sanitize(const FIELD *field) {
 
 /* Return 0 in case of a succesfull login or -1*/
 static int
-login_menu(void) {
+login_menu(struct list_head *headp) {
 	FIELD *fields[3] = {0, 0, 0};
 	FORM  *form = NULL;
 	unsigned int i = 0;
-	char *user, *pass; /* TODO: remove the password from memory */
+	char *user, *pass;
 
 	for (; i < 2; ++i) {
 		fields[i] = new_field(1, CRLS_MAXNAMELEN, 4 + i, 18, 0, 0);
@@ -334,27 +352,32 @@ login_menu(void) {
 
 	if (db_user_auth(user, crypt(pass, "$1")) != 0)
 		goto clean;
-	else
-		session.logged = 1;
+
+	session.logged = 1;
+	(void)memset(pass, 0, CRLS_MAXNAMELEN);
+	pass = NULL;
 
 	if (init_session(user) != 0) {
 		log_screen(14, 1, "Error whith your session");
 		goto clean;
 	}
 
-	/* Successful login! */
+	/* Successful login! Replace %user% by the real username */
+	{
+		struct list *lp;
 
-	/* parse the configuration files */
-	config();
-	list_finalize(&glh);
-	list_finalize(&elh);
+		SLIST_FOREACH(lp, headp, l_next) {
+			unsigned int i;
+			for (i = 0; lp->l_params[i] != NULL; ++i)
+				if (strcmp(lp->l_params[i], "%user%") == 0) {
+					free(lp->l_params[i]);
+					lp->l_params[i] = session.name;
+				}
+		}
+	}
 
 	(void)form_release(form);
-	user_menu();
-
-	list_release(&glh);
-	list_release(&elh);
-
+	user_menu(headp);
 	return 0;
 clean:
 	(void)form_release(form);
@@ -407,14 +430,25 @@ register_menu(void) {
 	}
 	for (i = 0; user[i] != '\0'; ++i) {
 		if (isokay(user[i]) == 0) {
-			log_screen(14, 1, "Only ascii alpha numerics in the username");
+			log_screen(14, 1,
+			    "Only ascii alpha numerics in the username");
 			goto clean;
 		}
 	}
 
-	if (init_playground_dir(user) == -1) {
-		log_screen(14, 1, "Error while creating your playground");
-		goto clean;
+	{
+		char *playground;
+		playground = init_playground_dir(user);
+		if (playground == NULL) {
+			log_screen(14, 1,
+			    "Error while creating your playground dir");
+			goto clean;
+		}
+		if (init_playground_rcfiles(playground) == -1) {
+			log_screen(14, 1,
+			    "Error while creating your playgrounds file");
+			goto clean;
+		}
 	}
 
 	/* This function actually print is own error message */
@@ -425,14 +459,14 @@ clean:
 }
 
 void
-menus(void) {
+menu_general(struct list_head *headp) {
 	unsigned char c = 0;
 
 	do {
 		switch (c) {
 		case 'l':
 		case 'L':
-			(void)login_menu();
+			(void)login_menu(headp);
 		break;
 		case 'r':
 		case 'R':

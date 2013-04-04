@@ -33,8 +33,11 @@
 #define CRLS_MAXNAMELEN 20
 
 extern struct session session;
+extern struct options options;
+/*
 extern games_list_head glh;
 extern editors_list_head elh;
+*/
 
 /* aux.c */
 __inline int isokay(int);
@@ -44,24 +47,22 @@ void trim(char **);
 char *escape_space(char *);
 void ignore_signals(void);
 void heed_signals(void);
+int has_config_file(struct list *);
 
 /* conf.c */
-void config(void);
-void list_release(struct list_head *);
-void list_finalize(struct list_head *);
+struct list_head *conf_load_file(const char *);
 
 /* init.c */
 void byebye(int);
-int init_playground_files(const char *);
-int init_playground_dir(const char *);
+int init_playground_conffile(const char *);
+int init_playground_rcfiles(const char *);
+char *init_playground_dir(const char *);
 int init_session(const char *);
 void init(void);
-void start_window(void);
 __inline void end_window(void);
 void free_env(void);
 
 /* menus.c */
-void menus(void);
-int has_config_file(games_list *);
+void menu_general(struct list_head *);
 
 #endif
