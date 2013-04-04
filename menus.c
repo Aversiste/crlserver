@@ -166,6 +166,9 @@ games_menu(struct list *lp) {
 				configurable = 1;
 				//editors_menu(glp);
 			break;
+		case 'q':
+		case 'Q':
+			return;
 		default:
 			break;
 		}
@@ -235,7 +238,7 @@ user_menu(struct list_head *headp) {
 				break;
 			}
 		}
-	} while ((ch = getch()) != 'q');
+	} while (ch != 'q');
 	session.logged = 0;
 	free(session.name);
 	free(session.home);
@@ -371,7 +374,11 @@ login_menu(struct list_head *headp) {
 			for (i = 0; lp->l_params[i] != NULL; ++i)
 				if (strcmp(lp->l_params[i], "%user%") == 0) {
 					free(lp->l_params[i]);
-					lp->l_params[i] = session.name;
+					/* 
+					 * XXX: Trouble if reconnection 
+					 * with an other account
+					 */
+					lp->l_params[i] = strdup(session.name);
 				}
 		}
 	}

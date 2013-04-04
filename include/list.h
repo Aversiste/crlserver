@@ -29,11 +29,11 @@ enum list_type {
 
 struct list {
 	enum list_type    l_type;
-	const char 	 *l_name;
-	const char 	 *l_longname;
-	const char 	 *l_version;
-	const char 	 *l_description;
-	const char 	 *l_path;
+	char 		 *l_name;
+	char 		 *l_longname;
+	char 		 *l_version;
+	char 		 *l_description;
+	char 		 *l_path;
 	char		  l_key;
 	char		**l_env;
 	char		**l_params;

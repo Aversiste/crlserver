@@ -28,5 +28,4 @@ struct options {
 	const char *o_log;
 };
 
-
 #endif
