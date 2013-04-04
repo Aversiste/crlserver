@@ -24,21 +24,6 @@
 #include "pathnames.h"
 #include "list.h"
 
-//static cfg_opt_t editor_opts[] = {
-//	CFG_STR("longname", "", CFGF_NONE),
-//	CFG_STR("version", "", CFGF_NONE),
-//	CFG_STR("description", "", CFGF_NONE),
-//	CFG_STR("path", "", CFGF_NONE),
-//	CFG_STR("key", "", CFGF_NONE),
-//	CFG_STR_LIST("env", "{}", CFGF_NONE),
-//	CFG_STR_LIST("params", "{}", CFGF_NONE),
-//	CFG_END()
-//};
-
-//int cfg_include_lol(cfg_t *cfg, cfg_opt_t *opt, int argc, const char **argv) {
-//	/* YADA YADA YADA */
-//}
-
 static cfg_opt_t game_opts[] = {
 	CFG_STR("longname", "", CFGF_NONE),
 	CFG_STR("version", "", CFGF_NONE),
@@ -52,8 +37,8 @@ static cfg_opt_t game_opts[] = {
 
 static cfg_opt_t opts[] = {
 	CFG_FUNC("include", cfg_include),
-	CFG_STR("db", "/var/db/crlserver.db", CFGF_NONE),
-	CFG_STR("log", "/var/log/crlserver.log", CFGF_NONE),
+	CFG_STR("db", "/var/db/"CRLSERVER_DATABASE, CFGF_NONE),
+	CFG_STR("log", "/var/log/"CRLSERVER_LOG_FILE, CFGF_NONE),
 	CFG_SEC("editor", game_opts, CFGF_TITLE | CFGF_MULTI),
 	CFG_SEC("game", game_opts, CFGF_TITLE | CFGF_MULTI),
 	CFG_END()
@@ -101,7 +86,7 @@ conf_parse_section(cfg_t *cfg, struct list *l, const char *sec, const u_int inde
 	l->l_path = strdup(cfg_getstr(cfg_sec, "path"));
 
 	/* Fill default env variable fist */
-	cfg_addlist(cfg_sec, "env", 1, "TERM=xterm");
+	cfg_addlist(cfg_sec, "env", 1, "TERM="CRLSERVER_DEFAULT_TERM);
 	cfg_addlist(cfg_sec, "env", 1, "HOME=...");
 	cfg_addlist(cfg_sec, "params", 1, l->l_path);
 
