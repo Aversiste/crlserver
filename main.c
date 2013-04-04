@@ -24,6 +24,12 @@
 struct session session;
 struct options options;
 
+/*
+ * TODO:
+ *    -u: batch creation of users
+ *    -l user -p password: autologin of a user
+ */
+
 int
 main(void) {
 	struct list_head *headp;

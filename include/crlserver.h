@@ -56,7 +56,7 @@ struct list_head *conf_load_file(const char *);
 void byebye(int);
 int init_playground_conffile(const char *);
 int init_playground_rcfiles(const char *);
-char *init_playground_dir(const char *);
+int init_playground_dir(const char *);
 int init_session(const char *);
 void init(void);
 __inline void end_window(void);

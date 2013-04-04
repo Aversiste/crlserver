@@ -51,7 +51,7 @@ init_playground_conffile(const char *path) {
 }
 
 int
-init_playground_rcfiles(const char *path) {
+init_playground_rcfiles(const char *username) {
 	struct dirent* dp;
 	const char *misc = CRLSERVER_CONFIG_DIR"/misc";
 	DIR* dir = opendir(misc);
@@ -60,24 +60,32 @@ init_playground_rcfiles(const char *path) {
 		return -1;
 
 	while ((dp = readdir(dir)) != NULL) {
-		char in_path[ MAXPATHLEN ];
-		char out_path[ MAXPATHLEN ];
-		char buf[ 1024 ];
+		char in_path[MAXPATHLEN];
+		char out_path[MAXPATHLEN];
+		char buf[1024];
 		FILE *ifd, *ofd;
 
 		if (dp->d_name[0] == '.')
 			continue;
 
-		(void)snprintf(in_path, strlen(misc) + strlen(dp->d_name) + 2,
-				"%s/%s\n", misc, dp->d_name);
-		(void)snprintf(out_path, strlen(path) + strlen(dp->d_name) + 3,
-				"%s/.%s\n", path, dp->d_name);
+		/* in_path: game configuration file */
+		(void)memset(in_path, 0, sizeof in_path);
+		(void)snprintf(in_path, sizeof in_path,
+		    "%s/%s\n", misc, dp->d_name);
 
-		ifd = fopen(in_path, "r");
-		ofd = fopen(out_path, "a+");
-		if (ifd == NULL || ofd == NULL) {
+		/* out_path: user fake home directory */
+		(void)memset(out_path, 0, sizeof out_path);
+		(void)snprintf(out_path, sizeof out_path,
+		    "%s/userdata/%c/%s/.%s\n",
+		    CRLSERVER_PLAYGROUND, username[0], username,
+		    dp->d_name);
+		log_info("out_path: [%s]", out_path);
+
+		if ((ifd = fopen(in_path, "r")) == NULL)
+			continue;
+		if ((ofd = fopen(out_path, "a+")) == NULL) {
+			log_info("fopen: [%s] [%s]", out_path, strerror(errno));
 			(void)fclose(ifd);
-			(void)fclose(ofd);
 			continue;
 		}
 		
@@ -122,13 +130,12 @@ init_session(const char *name) {
 	return 0;
 }
 
-char *
+int
 init_playground_dir(const char *player_name) {
-	char *p;
 	char playground[MAXPATHLEN] = CRLSERVER_PLAYGROUND"/userdata";
 
 	if (player_name == NULL)
-		return NULL;
+		return -1;
 
 	(void)strlcat(playground, "/", sizeof playground);
 	(void)strncat(playground, player_name, 1);
@@ -139,10 +146,9 @@ init_playground_dir(const char *player_name) {
 	(void)mkdir(playground, 0744);
 
 	if (access(playground, F_OK) == -1)
-		return NULL;
+		return -1;
 
-	p = playground;
-	return p;
+	return 0;
 }
 
 void

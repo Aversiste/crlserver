@@ -365,21 +365,36 @@ login_menu(struct list_head *headp) {
 		goto clean;
 	}
 
-	/* Successful login! Replace %user% by the real username */
+	/*
+	 * Successful login!
+	 *    - Replace %user% by the real username
+	 *    - Replace HOME environnment variable
+	 */
 	{
 		struct list *lp;
+		char buf[MAXPATHLEN + 5];
 
 		SLIST_FOREACH(lp, headp, l_next) {
 			unsigned int i;
-			for (i = 0; lp->l_params[i] != NULL; ++i)
-				if (strcmp(lp->l_params[i], "%user%") == 0) {
-					free(lp->l_params[i]);
-					/* 
-					 * XXX: Trouble if reconnection 
-					 * with an other account
-					 */
-					lp->l_params[i] = strdup(session.name);
-				}
+			for (i = 0; lp->l_params[i] != NULL; ++i) {
+				if (strcmp(lp->l_params[i], "%user%") != 0)
+					continue;
+				free(lp->l_params[i]);
+				/* 
+				 * XXX: Trouble if reconnection 
+				 * with an other account
+				 */
+				lp->l_params[i] = strdup(session.name);
+			}
+			for (i = 0; lp->l_env[i] != NULL; ++i) {
+				if (strncmp(lp->l_env[i], "HOME=", 5) != 0)
+					continue;
+				free(lp->l_env[i]);
+				(void)snprintf(buf, sizeof buf,
+				    "HOME=%s", session.home);
+				lp->l_env[i] = strdup(buf);
+				break;
+			}
 		}
 	}
 
@@ -444,14 +459,13 @@ register_menu(void) {
 	}
 
 	{
-		char *playground;
-		playground = init_playground_dir(user);
-		if (playground == NULL) {
+		int err = init_playground_dir(user);
+		if (err == -1) {
 			log_screen(14, 1,
 			    "Error while creating your playground dir");
 			goto clean;
 		}
-		if (init_playground_rcfiles(playground) == -1) {
+		if (init_playground_rcfiles(user) == -1) {
 			log_screen(14, 1,
 			    "Error while creating your playgrounds file");
 			goto clean;
@@ -470,6 +484,8 @@ menu_general(struct list_head *headp) {
 	unsigned char c = 0;
 
 	do {
+		print_file(CRLSERVER_CONFIG_DIR"/menus/general.txt");
+		c = getch();
 		switch (c) {
 		case 'l':
 		case 'L':
@@ -489,7 +505,6 @@ menu_general(struct list_head *headp) {
 		default:
 			break;
 		}
-		print_file(CRLSERVER_CONFIG_DIR"/menus/general.txt");
-	} while ((c = getch()) != 'q');
+	} while (c != 'q');
 }
 
