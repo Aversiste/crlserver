@@ -44,8 +44,13 @@ static void
 vlog(int pri, const char *fmt, va_list ap) {
 	char	*nfmt;
 	FILE	*f;
+	const char *log_path;
 
-	f = fopen(CRLSERVER_PLAYGROUND"/"CRLSERVER_LOG_FILE, "a+");
+	if (options.o_log != NULL)
+		log_path = options.o_log;
+	else
+		log_path = CRLSERVER_PLAYGROUND"/"CRLSERVER_LOG_FILE;
+	f = fopen(log_path, "a+");
 	if (f == NULL)
 		return;
 
