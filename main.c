@@ -52,6 +52,8 @@ main(void) {
 		for (unsigned int i = 0; lp->l_env[i] != NULL; ++i)
 			free(lp->l_env[i]);
 	}
+	free(options.o_db);
+	free(options.o_log);
 	return (EX_OK);
 }
 

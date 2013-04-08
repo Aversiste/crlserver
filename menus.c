@@ -145,11 +145,12 @@ games_menu(struct list *lp) {
 		switch (ch) {
 		case 'p':
 		case 'P':
+			pid = fork();
 			(void)clear();
+			(void)move(0, 0);
 			(void)refresh();
 			(void)endwin();
 
-			pid = fork();
 			if (pid < 0)
 				log_err(1, "fork");
 			else if (pid == 0) {
