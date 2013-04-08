@@ -12,6 +12,7 @@ Features
    * Simple configuration
    * SQL or LDAP authentification backend
    * Simple and clean UI
+   * Easy username filtering
 
 TODO
 ----
