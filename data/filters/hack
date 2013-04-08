@@ -1,0 +1,5 @@
+#!/bin/sh
+
+# Hack think that usernames ending with '-?' is an aditionnal option.
+echo $1 | grep '-' > /dev/null
+[ $? -eq 0 ] && exit 1 || exit 0

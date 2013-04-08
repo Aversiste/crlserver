@@ -27,6 +27,8 @@
  */
 #define CRLSERVER_CONFIG_DIR "/etc/crlserver"
 
+#define _PATH_FILTERS CRLSERVER_CONFIG_DIR"/filters"
+
 /*
  * The playground directory is read and write, because it contains the
  * database, the log file and 'userdata', the users' personals directories

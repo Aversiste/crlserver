@@ -65,6 +65,7 @@ set(SOURCES_LIST
     menus.c
     log.c
     aux.c
+    filter.c
 )
 
 if(ENABLE_SQLITE)

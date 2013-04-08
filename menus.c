@@ -35,6 +35,7 @@
 #include "pathnames.h"
 #include "list.h"
 #include "log.h"
+#include "filter.h"
 
 void
 print_file(const char *path) {
@@ -456,6 +457,12 @@ register_menu(void) {
 			    "Only ascii alpha numerics in the username");
 			goto clean;
 		}
+	}
+
+	if (filter_match(user) != 0) {
+		log_screen(14, 1,
+		    "This name is reserved");
+		goto clean;
 	}
 
 	{

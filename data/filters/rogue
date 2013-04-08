@@ -1,0 +1,5 @@
+#!/bin/sh
+
+# Rogue replace ':' with ';', witch is not the same username and can conflict.
+echo $1 | grep ':' > /dev/null
+[ $? -eq 0 ] && exit 1 || exit 0
