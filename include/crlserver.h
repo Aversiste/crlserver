@@ -57,9 +57,8 @@ void byebye(int);
 int init_playground_conffile(const char *);
 int init_playground_rcfiles(const char *);
 int init_playground_dir(const char *);
-int init_session(const char *);
 void init(void);
-__inline void end_window(void);
+void end_window(void);
 void free_env(void);
 
 /* menus.c */
@@ -70,5 +69,9 @@ int register_password_validation(const char *);
 int register_email_validation(const char *);
 int register_username_validation(const char *);
 int register_create_home(const char *);
+
+/* login.c */
+int login_create_session(char * const, char * const);
+void login_destroy_session(void);
 
 #endif

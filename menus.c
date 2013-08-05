@@ -241,10 +241,7 @@ user_menu(struct list_head *headp) {
 			}
 		}
 	} while (ch != 'q');
-	db_close("test");
-	session.logged = 0;
-	free(session.name);
-	free(session.home);
+	login_destroy_session();
 }
 
 static void
@@ -331,7 +328,7 @@ login_menu(struct list_head *headp) {
 	FIELD *fields[3] = {0, 0, 0};
 	FORM  *form = NULL;
 	unsigned int i = 0;
-	char *user, *pass;
+	char *username, *password;
 
 	for (; i < 2; ++i) {
 		fields[i] = new_field(1, CRLS_MAXNAMELEN, 4 + i, 18, 0, 0);
@@ -350,29 +347,21 @@ login_menu(struct list_head *headp) {
 	if (form_navigation(&form) == -1)
 		goto clean;
 
-	user = field_sanitize(fields[0]);
-	pass = field_sanitize(fields[1]);
+	username = field_sanitize(fields[0]);
+	password = field_sanitize(fields[1]);
 
-	if (user == NULL || pass == NULL)
+	if (username == NULL || password == NULL)
 		goto clean;
 
-	if (db_user_auth(user, pass) != 0)
+	if (login_create_session(username, password) == -1)
 		goto clean;
 
-	session.logged = 1;
-	(void)memset(pass, 0, CRLS_MAXNAMELEN);
-	pass = NULL;
+	/* Successful login! */
 
-	if (init_session(user) != 0) {
-		log_screen(14, 1, "Error whith your session");
-		goto clean;
-	}
+	/* remove password from memory */
+	(void)memset(password, 0, CRLS_MAXNAMELEN);
+	password = NULL;
 
-	/*
-	 * Successful login!
-	 *    - Replace %user% by the real username
-	 *    - Replace HOME environnment variable
-	 */
 	{
 		struct list *lp;
 		char buf[MAXPATHLEN + 5];
@@ -383,10 +372,6 @@ login_menu(struct list_head *headp) {
 				if (strcmp(lp->l_params[i], "%user%") != 0)
 					continue;
 				free(lp->l_params[i]);
-				/* 
-				 * XXX: Trouble if reconnection 
-				 * with an other account
-				 */
 				lp->l_params[i] = strdup(session.name);
 			}
 			for (i = 0; lp->l_env[i] != NULL; ++i) {

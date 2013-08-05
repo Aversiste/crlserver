@@ -106,41 +106,6 @@ init_playground_rcfiles(const char *username) {
 }
 
 int
-init_session(const char *name) {
-	char path[MAXPATHLEN];
-
-	session.name = strdup(name);
-	if (session.name == NULL)
-		log_err(1, "%s:", __func__);
-
-	(void)memset(path, 0, sizeof path);
-	(void)snprintf(path, sizeof path, "%s/%c/%s",
-		 CRLSERVER_PLAYGROUND"/userdata",
-		 session.name[0], session.name);
-
-	session.home = strdup(path);
-	if (session.home == NULL)
-		log_err(1, "%s:", __func__);
-
-	if (access(session.home, F_OK) == 0)
-		return 0;
-
-#if defined HAVE_LDAP
-	/* With LDAP backend we have to create the home dirs now */
-	if (init_playground_dir(name) == -1)
-		goto clean;
-	if (init_playground_rcfiles(name) == -1)
-		goto clean;
-	return 0;
-#endif
-
-clean:
-	free(session.home);
-	free(session.name);
-	return -1;
-}
-
-int
 init_playground_dir(const char *player_name) {
 	char playground[MAXPATHLEN] = CRLSERVER_PLAYGROUND"/userdata";
 
@@ -164,18 +129,6 @@ init_playground_dir(const char *player_name) {
 void
 init(void) {
 	heed_signals();
-
-	/* First init the DB, if it fails we don't need to go further */
-	const char *db_path;
-	
-	if (options.o_db != NULL)
-		db_path = options.o_db;
-	else
-		db_path = CRLSERVER_PLAYGROUND"/"CRLSERVER_DATABASE;
-
-	if (db_check(db_path) == -1)
-		db_init(db_path);
-	db_open(db_path);
 
 	/* Curses initialization */
 	(void)initscr();
