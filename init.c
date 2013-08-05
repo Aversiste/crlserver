@@ -122,25 +122,22 @@ init_session(const char *name) {
 	if (session.home == NULL)
 		log_err(1, "%s:", __func__);
 
-#if defined HAVE_SQLITE
-	/* With sqlite backend home dirs are created at the registration menu */
-	if (access(session.home, F_OK) != 0) {
-		free(session.home);
-		free(session.name);
-		return -1;
-	}
-#elif defined HAVE_LDAP
+	if (access(session.home, F_OK) == 0)
+		return 0;
+
+#if defined HAVE_LDAP
 	/* With LDAP backend we have to create the home dirs now */
-	if (access(session.home, F_OK) != 0) {
-		if (init_playground_dir(name) == -1) {
-			return -1;
-		}
-		if (init_playground_rcfiles(name) == -1) {
-			return -1;
-		}
-	}
-#endif
+	if (init_playground_dir(name) == -1)
+		goto clean;
+	if (init_playground_rcfiles(name) == -1)
+		goto clean;
 	return 0;
+#endif
+
+clean:
+	free(session.home);
+	free(session.name);
+	return -1;
 }
 
 int
@@ -197,8 +194,9 @@ init(void) {
 	if ((LINES < DROWS) || (COLS < DCOLS)) {
 		(void)move(DROWS - 1, 0);
 		(void)refresh();
-		endwin();
-		fprintf(stderr, "must be displayed on 24 x 80 screen "
+		(void)endwin();
+		(void)curs_set(1);
+		(void)fprintf(stderr, "must be displayed on 24 x 80 screen "
 		  "(or larger)");
 		exit(1);
 	}
@@ -225,13 +223,4 @@ init(void) {
 	session.name = NULL;
 	session.home = NULL;
 }
-
-//void
-//free_env(void) {
-//	unsigned int i = 1; /* The env array has one hard coded field */
-//
-//	for (; i < CRLSERVER_MAX_ENV_LENGTH && session.env[i] != NULL; ++i) {
-//		free(session.env[i]);
-//	}
-//}
 
