@@ -73,5 +73,7 @@ int register_create_home(const char *);
 /* login.c */
 int login_create_session(char * const, char * const);
 void login_destroy_session(void);
+int login_build_list(struct list_head *);
+int login_unbuild_list(struct list_head *);
 
 #endif

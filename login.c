@@ -78,3 +78,46 @@ login_destroy_session(void) {
 	session.logged = 0;
 }
 
+/* Replace %user% with the actual username in the various games options */
+int
+login_build_list(struct list_head *headp) {
+	struct list *lp;
+	char buf[MAXPATHLEN + 5];
+
+	SLIST_FOREACH(lp, headp, l_next) {
+		unsigned int i;
+		for (i = 0; lp->l_params[i] != NULL; ++i) {
+			if (strcmp(lp->l_params[i], "%user%") != 0)
+				continue;
+			free(lp->l_params[i]);
+			lp->l_params[i] = strdup(session.name);
+		}
+		for (i = 0; lp->l_env[i] != NULL; ++i) {
+			if (strncmp(lp->l_env[i], "HOME=", 5) != 0)
+				continue;
+			free(lp->l_env[i]);
+			(void)snprintf(buf, sizeof buf,
+			    "HOME=%s", session.home);
+			lp->l_env[i] = strdup(buf);
+			break;
+		}
+	}
+}
+
+/* Replace the actual username with %user% in the various games options */
+int
+login_unbuild_list(struct list_head *headp) {
+	struct list *lp;
+	char buf[MAXPATHLEN + 5];
+
+	SLIST_FOREACH(lp, headp, l_next) {
+		unsigned int i;
+		for (i = 0; lp->l_params[i] != NULL; ++i) {
+			if (strcmp(lp->l_params[i], session.name) != 0)
+				continue;
+			free(lp->l_params[i]);
+			lp->l_params[i] = strdup("%user%");
+		}
+	}
+}
+

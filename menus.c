@@ -241,6 +241,7 @@ user_menu(struct list_head *headp) {
 			}
 		}
 	} while (ch != 'q');
+	login_unbuild_list(headp);
 	login_destroy_session();
 }
 
@@ -362,29 +363,7 @@ login_menu(struct list_head *headp) {
 	(void)memset(password, 0, CRLS_MAXNAMELEN);
 	password = NULL;
 
-	{
-		struct list *lp;
-		char buf[MAXPATHLEN + 5];
-
-		SLIST_FOREACH(lp, headp, l_next) {
-			unsigned int i;
-			for (i = 0; lp->l_params[i] != NULL; ++i) {
-				if (strcmp(lp->l_params[i], "%user%") != 0)
-					continue;
-				free(lp->l_params[i]);
-				lp->l_params[i] = strdup(session.name);
-			}
-			for (i = 0; lp->l_env[i] != NULL; ++i) {
-				if (strncmp(lp->l_env[i], "HOME=", 5) != 0)
-					continue;
-				free(lp->l_env[i]);
-				(void)snprintf(buf, sizeof buf,
-				    "HOME=%s", session.home);
-				lp->l_env[i] = strdup(buf);
-				break;
-			}
-		}
-	}
+	login_build_list(headp);
 
 	(void)form_release(form);
 	user_menu(headp);
