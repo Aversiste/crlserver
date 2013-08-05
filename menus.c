@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2011 Tristan Le Guern <leguern AT medu.se>
  *
- * Permission to use, copy, modify, and distribute this software for any
+* Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
@@ -355,7 +355,7 @@ login_menu(struct list_head *headp) {
 	if (user == NULL || pass == NULL)
 		goto clean;
 
-	if (db_user_auth(user, crypt(pass, "$1")) != 0)
+	if (db_user_auth(user, pass) != 0)
 		goto clean;
 
 	session.logged = 1;
@@ -466,18 +466,16 @@ register_menu(void) {
 		goto clean;
 	}
 
-	{
-		int err = init_playground_dir(user);
-		if (err == -1) {
-			log_screen(14, 1,
-			    "Error while creating your playground dir");
-			goto clean;
-		}
-		if (init_playground_rcfiles(user) == -1) {
-			log_screen(14, 1,
-			    "Error while creating your playgrounds file");
-			goto clean;
-		}
+	if (init_playground_dir(user)) {
+		log_screen(14, 1,
+		    "Error while creating your playground dir");
+		goto clean;
+	}
+
+	if (init_playground_rcfiles(user) == -1) {
+		log_screen(14, 1,
+		    "Error while creating your playgrounds file");
+		goto clean;
 	}
 
 	/* This function actually print is own error message */

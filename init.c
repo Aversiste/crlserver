@@ -121,12 +121,25 @@ init_session(const char *name) {
 	session.home = strdup(path);
 	if (session.home == NULL)
 		log_err(1, "%s:", __func__);
+
+#if defined HAVE_SQLITE
+	/* With sqlite backend home dirs are created at the registration menu */
 	if (access(session.home, F_OK) != 0) {
 		free(session.home);
 		free(session.name);
 		return -1;
 	}
-
+#elif defined HAVE_LDAP
+	/* With LDAP backend we have to create the home dirs now */
+	if (access(session.home, F_OK) != 0) {
+		if (init_playground_dir(name) == -1) {
+			return -1;
+		}
+		if (init_playground_rcfiles(name) == -1) {
+			return -1;
+		}
+	}
+#endif
 	return 0;
 }
 
