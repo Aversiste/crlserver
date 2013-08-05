@@ -54,9 +54,10 @@ login_create_session(char * const username, char * const password) {
 	session.home = strdup(path);
 
 	if (access(session.home, F_OK) != 0)
-		goto clean;
 #if defined HAVE_LDAP
-	else if (register_create_home(username) == -1)
+		if (register_create_home(username) == -1)
+			goto clean;
+#else
 		goto clean;
 #endif
 	return 0;

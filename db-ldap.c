@@ -52,7 +52,10 @@ db_close(const char *ldap_uri) {
 
 	ldap_unbind_s(gl_ld);
 	free(gl_uri);
-	free(gl_ld);
+	free(gl_dn);
+	gl_uri = NULL;
+	gl_dn = NULL;
+	gl_ld = NULL;
 	return 0;
 }
 
@@ -89,7 +92,12 @@ db_user_auth(const char *name, const char *password) {
 	int err;
 	char dn[1024];
 
+	(void)memset(dn, 0, sizeof dn);
 	(void)snprintf(dn, sizeof dn, "uid=%s,%s\n", name, gl_dn);
+
+	if (gl_ld == NULL) {
+		log_screen(0, 0, "gl_ld == NULL");
+	}
 
 	err = ldap_simple_bind_s(gl_ld, dn, password);
 	if (err != LDAP_SUCCESS) {
@@ -107,11 +115,11 @@ db_check(const char *ldap_uri) {
 	p = strrchr(ldap_uri, '/');
 	if (p == NULL)
 		return -1;
-	*p = 0;
-	p++;
 
-	gl_dn = strdup(p);
-	gl_uri = strdup(ldap_uri);
+	gl_dn = strdup((p + 1));
+	gl_uri = strndup(ldap_uri, strlen(ldap_uri) - strlen(gl_dn));
+
+	log_screen(0, 0, gl_uri);
 	return 0;
 }
 
