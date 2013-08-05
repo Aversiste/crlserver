@@ -27,7 +27,7 @@
 int
 isokay(int c) {
 	if (isalnum(c) || c == ' ' || c == '-' || c == '_')
-		return 1;
+		return -1;
 	return 0;
 }
 
