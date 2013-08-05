@@ -18,6 +18,7 @@
 #define CRLSERVER_DB_H_
 
 int db_open(const char *);
+int db_close(const char *);
 int db_init(const char *);
 int db_check(const char *);
 int db_user_add(const char *, const char *, const char *);

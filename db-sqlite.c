@@ -57,6 +57,14 @@ db_open(const char *db_path) {
 }
 
 int
+db_close(const char *db_path) {
+	(void)db_path;
+
+	(void)sqlite3_close(db_link);
+	return 0;
+}
+
+int
 db_init(const char *db_path) {
 	int sql_res;
 
@@ -180,11 +188,14 @@ clean:
 }
 
 int
-db_user_mod_password(const char *name, const char *hash) {
+db_user_mod_password(const char *name, const char *password) {
 	int sql_res;
 	int ret;
 	sqlite3_stmt *stmt;
 	char *sql = "UPDATE users SET password=? WHERE name=?;";
+	char *hash;
+
+	hash = crypt(password, "$1");
 
 	ret = 0;
 	sql_res = sqlite3_prepare_v2(db_link, sql, -1, &stmt, NULL);
@@ -216,12 +227,15 @@ clean:
 }
 
 int
-db_user_auth(const char *name, const char *hash) {
+db_user_auth(const char *name, const char *password) {
 	int sql_res;
 	int ret;
 	sqlite3_stmt *stmt;
 	char *db_hash;
 	char *sql = "SELECT password FROM users WHERE name=?;";
+	char *hash;
+
+	hash = crypt(password, "$1");
 
 	ret = 0;
 	sql_res = sqlite3_prepare_v2(db_link, sql, -1, &stmt, NULL);
