@@ -40,7 +40,7 @@ extern editors_list_head elh;
 */
 
 /* aux.c */
-__inline int isokay(int);
+int isokay(int);
 void rtrim(char *);
 void ltrim(char **);
 void trim(char **);
@@ -64,5 +64,11 @@ void free_env(void);
 
 /* menus.c */
 void menu_general(struct list_head *);
+
+/* register.c */
+int register_password_validation(const char *);
+int register_email_validation(const char *);
+int register_username_validation(const char *);
+int register_create_home(const char *);
 
 #endif

@@ -241,6 +241,7 @@ user_menu(struct list_head *headp) {
 			}
 		}
 	} while (ch != 'q');
+	db_close("test");
 	session.logged = 0;
 	free(session.name);
 	free(session.home);
@@ -413,7 +414,7 @@ register_menu(void) {
 	FIELD *fields[5] = {0, 0, 0, 0, 0};
 	FORM  *form = NULL;
 	unsigned int i = 0;
-	char *user, *email, *pass, *pass2;
+	char *username, *email, *pass, *pass2;
 	size_t pass_size;
 
 	for (; i < 4; ++i) {
@@ -436,51 +437,32 @@ register_menu(void) {
 		goto clean;
 	
 	/* Get the input with trimed whitespaces */
-	user = field_sanitize(fields[0]);
+	username = field_sanitize(fields[0]);
 	email = field_sanitize(fields[1]);
 	pass = field_sanitize(fields[2]);
 	pass2 = field_sanitize(fields[3]);
 
-	if (user == NULL || email == NULL || pass == NULL || pass2 == NULL)
+	if (username == NULL || email == NULL || pass == NULL || pass2 == NULL)
 		goto clean;
+
+	if (register_email_validation(email) == -1)
+		goto clean;
+
 	pass_size = strlen(pass);
-	if (strchr(email, '@') == NULL) {
-		log_screen(14, 1, "Put a valid email please.");
-		goto clean;
-	}
 	if (strncmp(pass, pass2, pass_size) != 0) {
 		log_screen(14, 1, "Passwords don't match!");
 		goto clean;
 	}
-	for (i = 0; user[i] != '\0'; ++i) {
-		if (isokay(user[i]) == 0) {
-			log_screen(14, 1,
-			    "Only ascii alpha numerics in the username");
-			goto clean;
-		}
-	}
-
-	if (filter_match(user) != 0) {
-		log_screen(14, 1,
-		    "This name is reserved");
+	if (register_password_validation(pass) == -1)
 		goto clean;
-	}
 
-	if (init_playground_dir(user)) {
-		log_screen(14, 1,
-		    "Error while creating your playground dir");
+	if (register_username_validation(username) == -1)
 		goto clean;
-	}
 
-	if (init_playground_rcfiles(user) == -1) {
-		log_screen(14, 1,
-		    "Error while creating your playgrounds file");
+	if (register_create_home(username) == -1)
 		goto clean;
-	}
 
-	/* This function actually print is own error message */
-	db_user_add(user, email, crypt(pass, "$1"));
-
+	db_user_add(username, email, pass);
 clean:
 	(void)form_release(form);
 }
