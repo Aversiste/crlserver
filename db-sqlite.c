@@ -117,6 +117,9 @@ db_user_add(const char *name, const char *email, const char *password) {
 	char *sql = "INSERT INTO users "
 	    "(name, email, password) "
 	    " VALUES (?, ?, ?)";
+	char *hash;
+
+	hash = crypt(password, "$1");
 
 	ret = 0;
 	sql_res = sqlite3_prepare_v2(db_link, sql, -1, &stmt, NULL);
@@ -129,7 +132,7 @@ db_user_add(const char *name, const char *email, const char *password) {
 	/* bind params */
 	sql_res = sqlite3_bind_text(stmt, 1, name, -1, SQLITE_TRANSIENT);
 	sql_res |= sqlite3_bind_text(stmt, 2, email, -1, SQLITE_TRANSIENT);
-	sql_res |= sqlite3_bind_text(stmt, 3, password, -1, SQLITE_TRANSIENT);
+	sql_res |= sqlite3_bind_text(stmt, 3, hash, -1, SQLITE_TRANSIENT);
 	if (sql_res != SQLITE_OK) {
 		log_warnx("Can't bind sql: %s", sqlite3_errmsg(db_link));
 		ret = -1;
