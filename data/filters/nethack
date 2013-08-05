@@ -3,5 +3,10 @@
 # Nethack has a fiew reserved names
 case $1 in
 	"Maud") exit 1;;
+	"wizard") exit 1;;
+	"Croesus") exit 1;;
+	"Kroisos") exit 1;;
+	"Creosote") exit 1;;
+	"Elbereth") exit 1;;
 	*) exit 0;;
 esac
