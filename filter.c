@@ -26,7 +26,7 @@
 extern char **environ;
 
 int
-filter_apply(char *path, char *user) {
+filter_apply(char * const path, char * const user) {
 	int status, err;
 	pid_t pid;
 
@@ -35,7 +35,7 @@ filter_apply(char *path, char *user) {
 	if (pid < 0) {
 		fprintf(stderr, "Fork error\n");
 	} else if (pid == 0) {
-		char *argv[] = {path, user, NULL};
+		char * const argv[] = {path, user, NULL};
 		execve(path, argv, environ);
 		perror(NULL);
 	} else {
@@ -49,7 +49,7 @@ filter_apply(char *path, char *user) {
 }
 
 int
-filter_match(char *user) {
+filter_match(char * const user) {
 	struct dirent* dp;
 	DIR* dir = opendir(_PATH_FILTERS);
 	char buf[1024];

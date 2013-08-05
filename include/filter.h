@@ -17,7 +17,7 @@
 #ifndef FILTERS_H_
 #define FILTERS_H_
 
-int filter_apply(char *, char *);
-int filter_match(char *);
+int filter_apply(const char *, const char *);
+int filter_match(const char *);
 
 #endif
